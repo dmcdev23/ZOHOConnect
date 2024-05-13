@@ -13,7 +13,7 @@ const { authLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
-
+let c = 0;
 const app = express();
 
 if (config.env !== 'test') {
@@ -44,24 +44,26 @@ app.options('*', cors());
 // jwt authentication
 app.use(passport.initialize());
 passport.use('jwt', jwtStrategy);
-
+console.log(c++);
 // limit repeated failed requests to auth endpoints
 if (config.env === 'production') {
   app.use('/v1/auth', authLimiter);
 }
-
+app.get('/', (req, res) => {
+  res.send('index');
+});
 // v1 api routes
 app.use('/', routes);
-
+console.log(c++);
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {
   next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
 });
-
+console.log(c++);
 // convert error to ApiError, if needed
 app.use(errorConverter);
 
 // handle error
 app.use(errorHandler);
-
+console.log(c++);
 module.exports = app;
