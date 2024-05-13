@@ -1,6 +1,8 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
-const { authService, userService, tokenService, emailService } = require('../services');
+const { authService, userService, tokenService, emailService, licenceService } = require('../services');
+const axios = require('axios');
+const logger = require('../utils/logger');
 
 const register = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -46,6 +48,45 @@ const verifyEmail = catchAsync(async (req, res) => {
   await authService.verifyEmail(req.query.token);
   res.status(httpStatus.NO_CONTENT).send();
 });
+const generateToken = catchAsync(async (req, res) => {
+  res.status(httpStatus.NO_CONTENT).send();
+});
+const recieveToken = catchAsync(async (req, res) => {
+  try {
+    const config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=1000.0AV2T1IN2BJ8UQF6HNRJ6SZUBZW0PF&client_secret=3488dc9db9f10d32184522a46c0c1d43a9973e7730&redirect_uri=http://localhost:8888/bg_prod&grant_type=authorization_code&access_type=offline`,
+    };
+    const response = await axios.request(config);
+    res.status(httpStatus.OK).send(JSON.stringify(response.data));
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+});
+
+const linkZOHO = catchAsync(async (req, res) => {
+  try {
+    const licenceNumber = await licenceService.getLicenceById(req.body.licenceNumber);
+    const URL = `https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${req.param.client_id}&response_type=code&redirect_uri=http://localhost:8888/bg_prod&access_type=offline&prompt=consent&state=${req.user._id.toString()}`;
+    res.status(httpStatus.OK).send(URL);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+});
+
+const createLicence = catchAsync(async (req, res) => {
+  try {
+    const licence = await licenceService.createLicence(req.body, req.user._id);
+    res.status(httpStatus.OK).send(licence);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+});
+
 
 module.exports = {
   register,
@@ -56,4 +97,8 @@ module.exports = {
   resetPassword,
   sendVerificationEmail,
   verifyEmail,
+  generateToken,
+  recieveToken,
+  linkZOHO,
+  createLicence
 };

@@ -44,6 +44,28 @@ const deleteUser = {
     userId: Joi.string().custom(objectId),
   }),
 };
+const linkZOHO = {
+  params: Joi.object().keys({
+    client_id: Joi.string().required(),
+    client_secret: Joi.string().required(),
+    licenceNumber: Joi.string().required(),
+  }),
+};
+const createLicence = {
+  body: Joi.object().keys({
+    clientId: Joi.string().required(),
+    clientSecret: Joi.string().required(),
+    licenceNumber: Joi.string().required(),
+    refreshToken: Joi.string().required(),
+    accessToken: Joi.string(),
+  }),
+};
+const getOrganizations = {
+  query: Joi.object().keys({
+    clientId: Joi.string().required(),
+    licenceNumber: Joi.string().required(),
+  }),
+};
 
 module.exports = {
   createUser,
@@ -51,4 +73,7 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
+  linkZOHO,
+  createLicence,
+  getOrganizations,
 };

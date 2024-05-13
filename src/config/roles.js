@@ -1,5 +1,5 @@
 const allRoles = {
-  user: [],
+  user: ['getUsers', 'linkZOHO', 'createLicence', 'user'],
   admin: ['getUsers', 'manageUsers'],
 };
 
