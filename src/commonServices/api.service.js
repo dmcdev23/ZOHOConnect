@@ -1,4 +1,4 @@
-const { post } = require('./axios.service');
+const { authPost } = require('./axios.service');
 
 const refreshToken = async (data) => {
   try {
@@ -6,7 +6,7 @@ const refreshToken = async (data) => {
       endpoint: 'token',
       data,
     };
-    return await post(config);
+    return await authPost(config);
   } catch (error) {
     console.error(error);
     throw error;

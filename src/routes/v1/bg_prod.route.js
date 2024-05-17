@@ -3,18 +3,34 @@ const authController = require('../../controllers/auth.controller');
 const ZOHOController = require('../../controllers/ZOHO.controller');
 const validate = require('../../middlewares/validate');
 const userValidation = require('../../validations/user.validation');
+const ZohoValidation = require('../../validations/zoho.validation');
 const auth = require('../../middlewares/auth');
 const { licenceValidator } = require('../../middlewares/licenceValidator');
 
 const router = express.Router();
-
-router.get('/', authController.recieveToken);
+router
+  .route('/getOrganizations')
+  .get(auth('user'), validate(userValidation.getOrganizations), licenceValidator, ZOHOController.getOrganizations);
 router.post('/generateAuthToken', authController.generateToken);
 router.route('/linkZOHO').post(auth('linkZOHO'), validate(userValidation.linkZOHO), authController.linkZOHO);
 router
   .route('/createLicence')
   .post(auth('createLicence'), validate(userValidation.createLicence), authController.createLicence);
-router.get('/getOrganizations').post(auth('user'), validate(userValidation.getOrganizations),licenceValidator, ZOHOController.getOrganizations);
+router
+  .route('/createOrganizations')
+  .post(auth('user'), validate(ZohoValidation.createOrganization), licenceValidator, ZOHOController.createOrganizations);
+router
+  .route('/updateOrganizations')
+  .post(auth('user'), validate(ZohoValidation.updateOrganization), licenceValidator, ZOHOController.updateOrganizations);
+router
+  .route('/createItem')
+  .post(auth('user'), validate(ZohoValidation.createItem), licenceValidator, ZOHOController.createItem);
+router.route('/getItem').get(auth('user'), validate(ZohoValidation.getItems), licenceValidator, ZOHOController.getItems);
+router
+  .route('/updateItem')
+  .post(auth('user'), validate(ZohoValidation.updateItem), licenceValidator, ZOHOController.updateItems);
+
+router.get('/', authController.recieveToken);
 
 module.exports = router;
 

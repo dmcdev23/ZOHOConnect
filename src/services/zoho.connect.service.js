@@ -1,5 +1,7 @@
 const { Licence } = require('../models');
+const { get } = require('../commonServices/axios.service');
 const logger = require('../utils/logger');
+const { GET_ORGNIZATION, GET_ITEMS } = require('../utils/endPoints');
 /**
  * Create a user
  * @param {Object} userBody
@@ -19,16 +21,30 @@ const getLicenceById = async (id) => {
     throw e;
   }
 };
-const getOrganizations = async (id) => {
+const getOrganizations = async (user) => {
   try {
-    return await Licence.findById(id);
+    return await get(user, GET_ORGNIZATION);
   } catch (e) {
     throw e;
   }
 };
-const findOneAndUpdate = async (id, body) => {
+
+const findOneAndUpdate = async (_id, body) => {
   try {
-    return await Licence.findOneAndUpdate(id, body);
+    return await Licence.findOneAndUpdate({ _id }, body, { new: true });
+  } catch (e) {
+    throw e;
+  }
+};
+
+const getItems = async (req) => {
+  try {
+    return await get(
+      req.user.licence[req.query.licenceNumber],
+      req.query?.itemId
+        ? `${GET_ITEMS}/${req.query.itemId}/?organization_id=${req.query.organization_id}`
+        : `${GET_ITEMS}/?organization_id=${req.query.organization_id}`
+    );
   } catch (e) {
     throw e;
   }
@@ -39,4 +55,5 @@ module.exports = {
   getLicenceById,
   getOrganizations,
   findOneAndUpdate,
+  getItems,
 };
