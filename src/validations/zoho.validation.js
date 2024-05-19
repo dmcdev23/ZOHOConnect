@@ -60,6 +60,14 @@ const getItems = {
   }),
 };
 
+const getContact = {
+  query: Joi.object().keys({
+    organization_id: Joi.string().required(),
+    clientId: Joi.string().required(),
+    licenceNumber: Joi.string().required(),
+  }),
+};
+
 const createItem = {
   body: Joi.object().keys({
     group_id: Joi.number(),
@@ -157,18 +165,158 @@ const updateItem = {
   }),
 };
 
-const deleteUser = {
-  params: Joi.object().keys({
-    userId: Joi.string().custom(objectId),
-  }),
-};
-const linkZOHO = {
-  params: Joi.object().keys({
-    client_id: Joi.string().required(),
-    client_secret: Joi.string().required(),
+const createSale = {
+  query: Joi.object().keys({
+    organization_id: Joi.string().required(),
+    clientId: Joi.string().required(),
     licenceNumber: Joi.string().required(),
   }),
+  body: Joi.object().keys({
+    customer_id: Joi.string().required(),
+    salesorder_number: Joi.string(),
+    date: Joi.string(),
+    shipment_date: Joi.string(),
+    custom_fields: Joi.array().items({
+      custom_field_id: Joi.string(),
+      index: Joi.number(),
+      label: Joi.string(),
+      value: Joi.string(),
+    }),
+    reference_number: Joi.string(),
+    line_items: Joi.array()
+      .items({
+        item_id: Joi.any(),
+        name: Joi.string(),
+        description: Joi.string(),
+        rate: Joi.number(),
+        quantity: Joi.number(),
+        unit: Joi.string(),
+        tax_id: Joi.string(),
+        tds_tax_id: Joi.string(),
+        tax_name: Joi.string(),
+        tax_type: Joi.string(),
+        tax_percentage: Joi.number(),
+        item_total: Joi.number(),
+        warehouse_id: Joi.any(),
+        hsn_or_sac: Joi.string(),
+        sat_item_key_code: Joi.string(),
+        unitkey_code: Joi.string(),
+      })
+      .required(),
+    notes: Joi.string(),
+    terms: Joi.string(),
+    discount: Joi.string(),
+    is_discount_before_tax: Joi.boolean(),
+    discount_type: Joi.string(),
+    shipping_charge: Joi.number(),
+    delivery_method: Joi.string(),
+    adjustment: Joi.number(),
+    pricebook_id: Joi.string(),
+    salesperson_id: Joi.string(),
+    adjustment_description: Joi.string(),
+    is_inclusive_tax: Joi.boolean(),
+    exchange_rate: Joi.number(),
+    template_id: Joi.string(),
+    documents: Joi.array().items({
+      can_send_in_mail: Joi.boolean(),
+      file_name: Joi.string(),
+      file_type: Joi.string(),
+      file_size_formatted: Joi.string(),
+      attachment_order: 1,
+      document_id: Joi.any(),
+      file_size: Joi.number(),
+    }),
+    billing_address_id: Joi.string(),
+    shipping_address_id: Joi.string(),
+    place_of_supply: Joi.string(),
+    gst_treatment: Joi.string(),
+    gst_no: Joi.string(),
+  }),
 };
+
+const createContact = {
+  query: Joi.object().keys({
+    organization_id: Joi.string().required(),
+    clientId: Joi.string().required(),
+    licenceNumber: Joi.string().required(),
+  }),
+  body: Joi.object().keys({
+    contact_name: Joi.string().required(),
+    company_name: Joi.string(),
+    payment_terms: Joi.number(),
+    currency_id: Joi.string(),
+    website: Joi.string(),
+    contact_type: Joi.string(),
+    custom_fields: Joi.array().items({
+      value: Joi.string(),
+      index: Joi.number(),
+    }),
+    billing_address: {
+      attention: Joi.string(),
+      address: Joi.string(),
+      street2: Joi.string(),
+      city: Joi.string(),
+      state: Joi.string(),
+      zip: Joi.number(),
+      country: Joi.string(),
+    },
+    shipping_address: {
+      attention: Joi.string(),
+      address: Joi.string(),
+      street2: Joi.string(),
+      city: Joi.string(),
+      state: Joi.string(),
+      zip: Joi.number(),
+      country: Joi.string(),
+    },
+    contact_persons: Joi.array().items({
+      salutation: Joi.string(),
+      first_name: Joi.string(),
+      last_name: Joi.string(),
+      email: Joi.string(),
+      phone: Joi.string(),
+      mobile: Joi.string(),
+      is_primary_contact: Joi.boolean(),
+    }),
+    default_templates: {
+      invoice_template_id: Joi.string(),
+      invoice_template_name: Joi.string(),
+      estimate_template_id: Joi.string(),
+      estimate_template_name: Joi.string(),
+      creditnote_template_id: Joi.string(),
+      creditnote_template_name: Joi.string(),
+      invoice_email_template_id: Joi.string(),
+      invoice_email_template_name: Joi.string(),
+      estimate_email_template_id: Joi.string(),
+      estimate_email_template_name: Joi.string(),
+      creditnote_email_template_id: Joi.string(),
+      creditnote_email_template_name: Joi.string(),
+    },
+    language_code: Joi.string(),
+    notes: Joi.string(),
+    vat_reg_no: Joi.string(),
+    tax_reg_no: Joi.string(),
+    country_code: Joi.string(),
+    vat_treatment: Joi.string(),
+    tax_treatment: Joi.string(),
+    tax_regime: Joi.string(),
+    is_tds_registered: Joi.boolean(),
+    avatax_exempt_no: Joi.string(),
+    avatax_use_code: Joi.string(),
+    tax_exemption_id: Joi.any(),
+    tax_authority_id: Joi.any(),
+    tax_id: Joi.any(),
+    is_taxable: Joi.boolean(),
+    facebook: Joi.string(),
+    twitter: Joi.string(),
+    place_of_contact: Joi.string(),
+    gst_no: Joi.string(),
+    gst_treatment: Joi.string(),
+    tax_authority_name: Joi.string(),
+    tax_exemption_code: Joi.string(),
+  }),
+};
+
 const createLicence = {
   body: Joi.object().keys({
     clientId: Joi.string().required(),
@@ -178,6 +326,7 @@ const createLicence = {
     accessToken: Joi.string(),
   }),
 };
+
 const getOrganizations = {
   query: Joi.object().keys({
     clientId: Joi.string().required(),
@@ -192,4 +341,7 @@ module.exports = {
   createItem,
   getItems,
   updateItem,
+  createSale,
+  createContact,
+  getContact,
 };

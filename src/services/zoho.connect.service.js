@@ -1,7 +1,7 @@
 const { Licence } = require('../models');
 const { get } = require('../commonServices/axios.service');
 const logger = require('../utils/logger');
-const { GET_ORGNIZATION, GET_ITEMS } = require('../utils/endPoints');
+const { GET_ORGNIZATION, GET_ITEMS, GET_CONTACTS } = require('../utils/endPoints');
 /**
  * Create a user
  * @param {Object} userBody
@@ -50,10 +50,24 @@ const getItems = async (req) => {
   }
 };
 
+const getContacts = async (req) => {
+  try {
+    return await get(
+      req.user.licence[req.query.licenceNumber],
+      req.query?.itemId
+        ? `${GET_ITEMS}/${req.query.itemId}/?organization_id=${req.query.organization_id}`
+        : `${GET_CONTACTS}/?organization_id=${req.query.organization_id}`
+    );
+  } catch (e) {
+    throw e;
+  }
+};
+
 module.exports = {
   createLicence,
   getLicenceById,
   getOrganizations,
   findOneAndUpdate,
   getItems,
+  getContacts,
 };

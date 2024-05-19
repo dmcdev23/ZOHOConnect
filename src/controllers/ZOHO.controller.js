@@ -86,6 +86,44 @@ const updateItems = catchAsync(async (req, res) => {
   }
 });
 
+const createSale = catchAsync(async (req, res) => {
+  try {
+    const { data } = await post({
+      endpoint: '/salesorders'  +`?organization_id=${req.query.organization_id}`,
+      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      data: JSON.stringify(req.body),
+    });
+    res.status(httpStatus.OK).send(data.salesorder);
+  } catch (e) {
+    console.error(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
+  }
+});
+
+const createContact = catchAsync(async (req, res) => {
+  try {
+    const data = await post({
+      endpoint: '/contacts'  +`?organization_id=${req.query.organization_id}`,
+      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      data: JSON.stringify(req.body),
+    });
+    res.status(httpStatus.OK).send(data);
+  } catch (e) {
+    console.error(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
+  }
+});
+
+const getContacts = catchAsync(async (req, res) => {
+  try {
+    const data = await licenceService.getContacts(req);
+    res.status(httpStatus.OK).send(data);
+  } catch (e) {
+    console.error(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
+  }
+});
+
 module.exports = {
   createLicence,
   getOrganizations,
@@ -93,5 +131,8 @@ module.exports = {
   updateOrganizations,
   createItem,
   getItems,
-  updateItems
+  updateItems,
+  createSale,
+  createContact,
+  getContacts,
 };
