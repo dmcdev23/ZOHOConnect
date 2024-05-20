@@ -29,12 +29,25 @@ router.route('/getItem').get(auth('user'), validate(ZohoValidation.getItems), li
 router
   .route('/updateItem')
   .post(auth('user'), validate(ZohoValidation.updateItem), licenceValidator, ZOHOController.updateItems);
+
 router
   .route('/createSale')
   .post(auth('user'), validate(ZohoValidation.createSale), licenceValidator, ZOHOController.createSale);
+
+router
+  .route('/updateSale')
+  .put(auth('user'), validate(ZohoValidation.updateSale), licenceValidator, ZOHOController.updateSale);
+router
+  .route('/updateSale')
+  .get(auth('user'), validate(ZohoValidation.getSale), licenceValidator, ZOHOController.getSale);
+
 router
   .route('/createContact')
   .post(auth('user'), validate(ZohoValidation.createContact), licenceValidator, ZOHOController.createContact);
+
+router
+  .route('/updateContact')
+  .put(auth('user'), validate(ZohoValidation.updateContact), licenceValidator, ZOHOController.updateContact);
 
 router
   .route('/getContact')

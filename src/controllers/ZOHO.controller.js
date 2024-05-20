@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { licenceService } = require('../services');
-const { post, put } = require('../commonServices/axios.service');
+const { post, put, getDynamic } = require('../commonServices/axios.service');
 const createLicence = catchAsync(async (req, res) => {
   try {
     const data = await licenceService.createLicence(req.body);
@@ -100,10 +100,51 @@ const createSale = catchAsync(async (req, res) => {
   }
 });
 
+const updateSale = catchAsync(async (req, res) => {
+  try {
+    const { data } = await put({
+      endpoint: `/salesorders/${req.query.salesId}`  +`?organization_id=${req.query.organization_id}`,
+      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      data: JSON.stringify(req.body),
+    });
+    res.status(httpStatus.OK).send(data.salesorder);
+  } catch (e) {
+    console.error(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
+  }
+});
+
+const getSale = catchAsync(async (req, res) => {
+  try {
+    const { data } = await getDynamic({
+      endpoint: '/salesorders' + (req.query.salesId ? `/${req.query.salesId}` : '/')  +`?organization_id=${req.query.organization_id}`,
+      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+    });
+    res.status(httpStatus.OK).send(data.salesorder);
+  } catch (e) {
+    console.error(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
+  }
+});
+
 const createContact = catchAsync(async (req, res) => {
   try {
     const data = await post({
       endpoint: '/contacts'  +`?organization_id=${req.query.organization_id}`,
+      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      data: JSON.stringify(req.body),
+    });
+    res.status(httpStatus.OK).send(data);
+  } catch (e) {
+    console.error(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
+  }
+});
+
+const updateContact = catchAsync(async (req, res) => {
+  try {
+    const data = await put({
+      endpoint: `/contacts/${req.query.contactId}` +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
     });
@@ -135,4 +176,7 @@ module.exports = {
   createSale,
   createContact,
   getContacts,
+  updateContact,
+  updateSale,
+  getSale ,
 };

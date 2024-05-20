@@ -70,4 +70,22 @@ const put = async ({ accessToken, endpoint, data }) => {
   }
 };
 
-module.exports = { post, authPost, get, put };
+const getDynamic = async ({ accessToken, endpoint, data }) => {
+  try {
+    const config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: zohoBaseURL + endpoint,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'content-type': 'application/json',
+      },
+    };
+    return await axios.request(config);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+module.exports = { post, authPost, get, put, getDynamic };
