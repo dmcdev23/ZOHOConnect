@@ -9,7 +9,11 @@ const { GET_ORGNIZATION, GET_ITEMS, GET_CONTACTS } = require('../utils/endPoints
  */
 const createLicence = async (userBody, userId) => {
   try {
-    return await Licence.create({ userId, ...userBody });
+    return await Licence.findOneAndUpdate({ userId, ...userBody }, {
+      $set: { userId, ...userBody }
+    },{
+      upsert: true,
+    new: true}).lean();
   } catch (e) {
     throw e;
   }
