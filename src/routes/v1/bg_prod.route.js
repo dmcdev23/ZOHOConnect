@@ -12,7 +12,7 @@ router
   .route('/getOrganizations')
   .get(auth('user'), validate(userValidation.getOrganizations), licenceValidator, ZOHOController.getOrganizations);
 router.post('/generateAuthToken', authController.generateToken);
-router.route('/linkZOHO').post(auth('linkZOHO'), validate(userValidation.linkZOHO), authController.linkZOHO);
+router.route('/linkZOHO').get(auth('linkZOHO'), validate(userValidation.linkZOHO), authController.linkZOHO);
 router
   .route('/createLicence')
   .post(auth('createLicence'), validate(userValidation.createLicence), authController.createLicence);

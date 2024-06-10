@@ -45,7 +45,7 @@ const deleteUser = {
   }),
 };
 const linkZOHO = {
-  params: Joi.object().keys({
+  query: Joi.object().keys({
     client_id: Joi.string().required(),
     client_secret: Joi.string().required(),
     licenceNumber: Joi.string().required(),
