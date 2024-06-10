@@ -120,7 +120,7 @@ const getSale = catchAsync(async (req, res) => {
       endpoint: '/salesorders' + (req.query.salesId ? `/${req.query.salesId}` : '/')  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
     });
-    res.status(httpStatus.OK).send(data.salesorders);
+    res.status(httpStatus.OK).send(data.salesorders || data.salesorder);
   } catch (e) {
     console.error(e);
     res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
