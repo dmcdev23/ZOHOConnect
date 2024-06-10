@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const { User } = require('../models');
+const { User, Licence } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 /**
@@ -43,7 +43,11 @@ const getUserById = async (id) => {
  * @returns {Promise<User>}
  */
 const getUserByEmail = async (email) => {
-  return User.findOne({ email });
+  const user = await User.findOne({ email });
+  if (user) {
+    user._doc.licence = await Licence.find({ userId: user._id }).lean();
+  }
+  return user;
 };
 
 /**
