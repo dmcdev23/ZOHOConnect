@@ -37,9 +37,8 @@ router
 router
   .route('/updateSale')
   .put(auth('user'), validate(ZohoValidation.updateSale), licenceValidator, ZOHOController.updateSale);
-router
-  .route('/updateSale')
-  .get(auth('user'), validate(ZohoValidation.getSale), licenceValidator, ZOHOController.getSale);
+
+router.route('/getSale').get(auth('user'), validate(ZohoValidation.getSale), licenceValidator, ZOHOController.getSale);
 
 router
   .route('/createContact')
