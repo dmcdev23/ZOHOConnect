@@ -113,6 +113,7 @@ const generateVerifyEmailToken = async (user) => {
   return verifyEmailToken;
 };
 
+
 module.exports = {
   generateToken,
   saveToken,

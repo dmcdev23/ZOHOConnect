@@ -67,6 +67,16 @@ const getContacts = async (req) => {
   }
 };
 
+const getLicence = async (req) => {
+  try {
+    return await Licence.find({
+      userId: req.user._id
+    })
+  } catch (e) {
+    throw e;
+  }
+};
+
 module.exports = {
   createLicence,
   getLicenceById,
@@ -74,4 +84,5 @@ module.exports = {
   findOneAndUpdate,
   getItems,
   getContacts,
+  getLicence
 };

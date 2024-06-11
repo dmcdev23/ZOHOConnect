@@ -51,6 +51,11 @@ router
 router
   .route('/getContact')
   .get(auth('user'), validate(ZohoValidation.getContact), licenceValidator, ZOHOController.getContacts);
+
+router
+  .route('/getLicence')
+  .get(auth('user'), ZOHOController.getLicence);
+
 router.get('/', authController.recieveToken);
 
 module.exports = router;

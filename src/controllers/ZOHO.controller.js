@@ -165,6 +165,16 @@ const getContacts = catchAsync(async (req, res) => {
   }
 });
 
+const getLicence = catchAsync(async (req, res) => {
+  try {
+    const data= await licenceService.getLicence(req);
+    res.status(httpStatus.OK).send(data);
+  } catch (e) {
+    console.error(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
+  }
+});
+
 module.exports = {
   createLicence,
   getOrganizations,
@@ -179,4 +189,5 @@ module.exports = {
   updateContact,
   updateSale,
   getSale ,
+  getLicence,
 };

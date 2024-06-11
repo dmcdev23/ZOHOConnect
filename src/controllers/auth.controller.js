@@ -89,7 +89,7 @@ const recieveToken = catchAsync(async (req, res) => {
 const linkZOHO = catchAsync(async (req, res) => {
   try {
     const licenceNumber = await licenceService.createLicence(
-      { clientId: req.query.client_id, clientSecret: req.query.client_secret },
+      { clientId: req.query.client_id, clientSecret: req.query.client_secret, licenceNumber: req.query.licenceNumber },
       req.user._id.toString()
     );
     const URL = `https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${
