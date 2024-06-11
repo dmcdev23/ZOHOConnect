@@ -94,7 +94,7 @@ const linkZOHO = catchAsync(async (req, res) => {
     );
     const URL = `https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${
       req.query.client_id
-    }&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
+    }&response_type=code&${!!req.headers.host ? req.headers.host: 'redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app'}/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
     res.status(httpStatus.OK).send({ URL });
   } catch (e) {
     console.error(e);
