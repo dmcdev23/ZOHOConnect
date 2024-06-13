@@ -52,18 +52,68 @@ const verifyEmail = catchAsync(async (req, res) => {
 const generateToken = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
+// const recieveToken = catchAsync(async (req, res) => {
+//   try {
+//     console.log(req.query);
+//     const [_id,redirectionURL] = req.query.state.split('|')
+//     let licence = await Licence.findOne({ _id: _id }).lean();
+//     const config = {
+//       method: 'post',
+//       maxBodyLength: Infinity,
+//       url: `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=${licence.clientId}&client_secret=${licence.clientSecret}&redirect_uri=${!!redirectionURL ? redirectionURL : 'https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod'}&grant_type=authorization_code&access_type=offline`,
+//     };
+//     const response = await axios.request(config);
+//     licence = await Licence.updateOne(
+//       { _id: req.query.state },
+//       {
+//         $set: {
+//           accessToken: response.data?.access_token,
+//           refreshToken: response.data?.refresh_token,
+//         },
+//       }
+//     );
+//     res.status(httpStatus.OK).send(
+//       {
+//         status: 200,
+//         message: 'Success'
+//       });
+//   } catch (e) {
+//     console.error(e);
+//     res.status(httpStatus.OK).send(
+//       {
+//         status: 500,
+//         message: 'Error',
+//         data: e
+//       });
+//   }
+// });
+
+// const linkZOHO = catchAsync(async (req, res) => {
+//   try {
+//     const licenceNumber = await licenceService.createLicence(
+//       { clientId: req.query.client_id, clientSecret: req.query.client_secret, licenceNumber: req.query.licenceNumber },
+//       req.user._id.toString()
+//     );
+//     const URL = `https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${
+//       req.query.client_id
+//     }&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&state=${licenceNumber._id.toString()}|${req.headers.redirecturl}`;
+//     res.status(httpStatus.OK).send({ URL });
+//   } catch (e) {
+//     console.error(e);
+//     throw e;
+//   }
+// });
+
 const recieveToken = catchAsync(async (req, res) => {
   try {
     console.log(req.query);
-    const [_id,redirectionURL] = req.query.state.split('|')
-    let licence = await Licence.findOne({ _id: _id }).lean();
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=${licence.clientId}&client_secret=${licence.clientSecret}&redirect_uri=${!!redirectionURL ? redirectionURL : 'https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod'}&grant_type=authorization_code&access_type=offline`,
+      url: `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=1000.0AV2T1IN2BJ8UQF6HNRJ6SZUBZW0PF&client_secret=3488dc9db9f10d32184522a46c0c1d43a9973e7730&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`,
     };
     const response = await axios.request(config);
-    licence = await Licence.updateOne(
+    const licence = await Licence.updateOne(
       { _id: req.query.state },
       {
         $set: {
@@ -72,19 +122,18 @@ const recieveToken = catchAsync(async (req, res) => {
         },
       }
     );
-    res.status(httpStatus.OK).send(
-      {
-        status: 200,
-        message: 'Success'
-      });
+    // res.status(httpStatus.OK).send({
+    //   status: 200,
+    //   message: 'Success',
+    // });
+    res.redirect(`https://connector-steel.vercel.app/zoho-redirect?success=${response.data?.accessToken ? true : false}`);
   } catch (e) {
     console.error(e);
-    res.status(httpStatus.OK).send(
-      {
-        status: 500,
-        message: 'Error',
-        data: e
-      });
+    res.status(httpStatus.OK).send({
+      status: 500,
+      message: 'Error',
+      data: e,
+    });
   }
 });
 
@@ -96,7 +145,7 @@ const linkZOHO = catchAsync(async (req, res) => {
     );
     const URL = `https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${
       req.query.client_id
-    }&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&state=${licenceNumber._id.toString()}|${req.headers.redirecturl}`;
+    }&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
     res.status(httpStatus.OK).send({ URL });
   } catch (e) {
     console.error(e);
