@@ -126,7 +126,7 @@ const recieveToken = catchAsync(async (req, res) => {
     //   status: 200,
     //   message: 'Success',
     // });
-    res.redirect(`https://connector-steel.vercel.app/zoho-redirect?success=${response.data?.accessToken ? true : false}`);
+    res.redirect(`https://connector-steel.vercel.app/zoho-redirect?success=${JSON.stringify(response.data)}`);
   } catch (e) {
     console.error(e);
     res.status(httpStatus.OK).send({
