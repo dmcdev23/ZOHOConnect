@@ -167,8 +167,13 @@ const getContacts = catchAsync(async (req, res) => {
 
 const getLicence = catchAsync(async (req, res) => {
   try {
-    const data= await licenceService.getLicence(req);
-    res.status(httpStatus.OK).send(data);
+    const data = await licenceService.getLicence(req);
+    const updatedArray = data.map((item) => {
+      const newItem = { ...item._doc, _id: item.id };
+      delete newItem.id;
+      return newItem;
+    });
+    res.status(httpStatus.OK).send(updatedArray);
   } catch (e) {
     console.error(e);
     res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
