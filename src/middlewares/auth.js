@@ -40,7 +40,10 @@ const auth =
       passport.authenticate('jwt', { session: false }, verifyCallback(req, resolve, reject, requiredRights))(req, res, next);
     })
       .then(() => next())
-      .catch((err) => next(err));
+      .catch((err) => {
+        console.log(err);
+        next(err);
+      });
   };
 
 module.exports = auth;

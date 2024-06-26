@@ -2,6 +2,7 @@ const { Licence } = require('../models');
 const { get } = require('../commonServices/axios.service');
 const logger = require('../utils/logger');
 const { GET_ORGNIZATION, GET_ITEMS, GET_CONTACTS } = require('../utils/endPoints');
+const { tr } = require('faker/lib/locales');
 /**
  * Create a user
  * @param {Object} userBody
@@ -11,9 +12,10 @@ const createLicence = async (userBody, userId) => {
   try {
     return await Licence.findOneAndUpdate({ userId, ...userBody }, {
       $set: { userId, ...userBody }
-    },{
+    }, {
       upsert: true,
-    new: true}).lean();
+      new: true
+    }).lean();
   } catch (e) {
     throw e;
   }
@@ -71,7 +73,35 @@ const getLicence = async (req) => {
   try {
     return await Licence.find({
       userId: req.user._id
-    })
+    });
+  } catch (e) {
+    throw e;
+  }
+};
+
+const findOne = async (filter, lean = true, project = {}) => {
+  try {
+    return await Licence.findOne(filter, project).lean(lean);
+  } catch (e) {
+    throw e;
+  }
+};
+
+const aggregate = async (pipeline) => {
+  try {
+    if (!Array.isArray(pipeline)) throw new Error('pipeline must be an array');
+    return await Licence.aggregate(pipeline);
+  } catch (e) {
+    throw e;
+  }
+};
+
+const updateOne = async (filter, set, options = {}) => {
+  try {
+    return await Licence.updateOne(filter, {
+        $set: set
+      },
+      options);
   } catch (e) {
     throw e;
   }
@@ -84,5 +114,8 @@ module.exports = {
   findOneAndUpdate,
   getItems,
   getContacts,
-  getLicence
+  getLicence,
+  findOne,
+  aggregate,
+  updateOne
 };

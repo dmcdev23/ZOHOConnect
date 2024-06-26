@@ -3,6 +3,7 @@ const authRoute = require('./auth.route');
 const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
 const zohoRoute = require('./bg_prod.route');
+const wordPressRoute = require('./wordPress.route');
 const config = require('../../config/config');
 
 const router = express.Router();
@@ -19,6 +20,10 @@ const defaultRoutes = [
   {
     path: '/bg_prod',
     route: zohoRoute,
+  },
+  {
+    path: '/wordPress',
+    route: wordPressRoute,
   },
 ];
 
