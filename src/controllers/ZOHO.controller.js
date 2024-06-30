@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
-const { licenceService } = require('../services');
+const { licenceService, wordPressService } = require('../services');
 const { post, put, getDynamic } = require('../commonServices/axios.service');
+const { tr } = require('faker/lib/locales');
 const createLicence = catchAsync(async (req, res) => {
   try {
     const data = await licenceService.createLicence(req.body);
@@ -177,11 +178,105 @@ const getLicence = catchAsync(async (req, res) => {
 });
 
 const postCreateContact = async (req) => {
-  return await post({
-    endpoint: '/contacts'  +`?organization_id=${req.query.organization_id}`,
-    accessToken: req.user.licence[req.query.licenceNumber].accessToken,
-    data: JSON.stringify(req.body),
-  });
+  try {
+    return await post({
+      endpoint: '/contacts'  +`?organization_id=${req.query.organization_id}`,
+      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      data: JSON.stringify(req.body),
+    });
+  }catch (e) {
+    return e
+  }
+}
+
+
+const transformData = async (req,data, transformWhat) => {
+try{
+  const transformMap = {
+    createCustomers: (element)=> {
+      try {
+        console.log(element.data);
+        return {
+          contact_name: element.data.first_name + element.data.last_name,
+          company_name: element?.data?.billing?.company,
+          payment_terms: undefined,
+          currency_id: undefined,
+          website: undefined,
+          contact_type: "customer",
+          billing_address: {
+            attention: undefined,
+            address: element?.data?.billing?.address_1,
+            street2: element?.data?.billing?.address_2,
+            city: element?.data?.billing?.city,
+            state: element?.data?.billing?.state,
+            zip: element?.data?.billing?.postcode,
+            country: element?.data?.billing?.country,
+          },
+          shipping_address: {
+            attention: undefined,
+            address: element.data.shipping.address_1,
+            street2: element.data.shipping.address_2,
+            city: element.data.shipping.city,
+            state: element.data.shipping.state,
+            zip: element.data.shipping.postcode,
+            country: element.data.shipping.country,
+          },
+          contact_persons: [{
+            salutation: undefined,
+            first_name: element.data.first_name,
+            last_name: element.data.last_name,
+            email: element?.data?.billing?.email,
+            phone: element?.data?.billing?.phone,
+            mobile: undefined,
+            is_primary_contact: element.data.is_paying_customer,
+          }],
+          default_templates: {
+            invoice_template_id: undefined,
+            invoice_template_name: undefined,
+            estimate_template_id: undefined,
+            estimate_template_name: undefined,
+            creditnote_template_id: undefined,
+            creditnote_template_name: undefined,
+            invoice_email_template_id: undefined,
+            invoice_email_template_name: undefined,
+            estimate_email_template_id: undefined,
+            estimate_email_template_name: undefined,
+            creditnote_email_template_id: undefined,
+            creditnote_email_template_name: undefined,
+          },
+          language_code: undefined,
+          notes: undefined,
+          vat_reg_no: undefined,
+          tax_reg_no: undefined,
+          vat_treatment: undefined,
+          tax_treatment: undefined,
+          tax_regime: undefined,
+          is_tds_registered: undefined,
+          avatax_exempt_no: undefined,
+          avatax_use_code: undefined,
+          tax_exemption_id: undefined,
+          tax_authority_id: undefined,
+          tax_id: undefined,
+          is_taxable: undefined,
+          facebook: undefined,
+          twitter: undefined,
+          place_of_contact: undefined,
+          gst_no: undefined,
+          gst_treatment: undefined,
+          tax_authority_name: undefined,
+          tax_exemption_code: undefined,
+        }
+      }catch (e) {
+        throw e;
+      }
+    }
+  };
+  return data.map(element => {
+    return transformMap[transformWhat](element);
+  })
+}catch (e) {
+  throw e;
+}
 }
 module.exports = {
   createLicence,
@@ -198,5 +293,6 @@ module.exports = {
   updateSale,
   getSale ,
   getLicence,
-  postCreateContact
+  postCreateContact,
+  transformData
 };

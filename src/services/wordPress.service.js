@@ -38,10 +38,16 @@ const createCustomer = async (req, data) => {
   }));
   return await wordPressCustomer.create(data);
 };
+
+const bulkWrite = async (pipeline) => {
+  const data = await wordPressCustomer.bulkWrite(pipeline);
+  return data;
+};
 module.exports = {
   findOrder,
   createOrder,
   createCustomer,
   findCustomer,
   getCustomerCount,
+  bulkWrite
 };

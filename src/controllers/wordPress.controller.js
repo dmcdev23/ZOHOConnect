@@ -192,24 +192,49 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
 const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
   const serviceMap = {
     customers: wordPressService.findCustomer,
+    createCustomers: wordPressService.findCustomer,
+    bulkWritecreateCustomers: wordPressService.bulkWrite,
+  }
+  const countMap = {
+    customers: wordPressService.getCustomerCount,
     createCustomers: wordPressService.getCustomerCount,
   }
   const ZohoserviceMap = {
     customers: wordPressService.findCustomer,
     createCustomers: ZOHOController.postCreateContact,
   }
-  const count = await serviceMap[getWhat]({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
+  const count = await countMap[getWhat]({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
   const limit = 500;
+  let responseArray = [];
+  let errorArray = []
   for (let i = 1;i< count ; i++) {
-    const data = await serviceMap[getWhat](
+    let data = await serviceMap[getWhat](
       { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false},
       true,
       {},
       {skip: i* limit, limit: limit});
-    data.forEach(async (item) => {
-      const response = await ZohoserviceMap[getWhat](req)
-    })
+    let transformData = await ZOHOController.transformData(req,data,getWhat)
+    for(let i = 0; i < transformData.length; ++i){
+      req.body = transformData[i];
+      const response = await ZohoserviceMap[getWhat](req);
+      if(response && response.status >= 200 && response.status < 300 ) {
+        responseArray.push(
+          { updateOne :
+            {
+              "filter": {_id: data[i]._id},
+                "update": {
+                  $set: {
+                    isSyncedToZoho: true
+                  }
+                }
+            }
+          }
+          )
+      } else{
+        errorArray.push(response);
+      }
+      console.log(responseArray);
+    }
   }
-
-  const responseArray = [];
+  let d = await serviceMap[`bulkWrite${getWhat}`](responseArray);
 }
