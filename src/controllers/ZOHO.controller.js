@@ -129,11 +129,7 @@ const getSale = catchAsync(async (req, res) => {
 
 const createContact = catchAsync(async (req, res) => {
   try {
-    const data = await post({
-      endpoint: '/contacts'  +`?organization_id=${req.query.organization_id}`,
-      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
-      data: JSON.stringify(req.body),
-    });
+    const data = await postCreateContact(req);
     res.status(httpStatus.OK).send(data);
   } catch (e) {
     console.error(e);
@@ -180,6 +176,13 @@ const getLicence = catchAsync(async (req, res) => {
   }
 });
 
+const postCreateContact = async (req) => {
+  return await post({
+    endpoint: '/contacts'  +`?organization_id=${req.query.organization_id}`,
+    accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+    data: JSON.stringify(req.body),
+  });
+}
 module.exports = {
   createLicence,
   getOrganizations,
@@ -195,4 +198,5 @@ module.exports = {
   updateSale,
   getSale ,
   getLicence,
+  postCreateContact
 };

@@ -2,6 +2,23 @@ const Joi = require('joi');
 
 const syncOrders = {
   body: Joi.object(),
+  query: Joi.object().keys({
+    licenceNumber: Joi.string().required(),
+  }),
+};
+
+const getOrders = {
+  query: Joi.object().keys({
+    licenceNumber: Joi.string().required(),
+    organization_id: Joi.string().optional(),
+  }),
+};
+
+const syncContacts = {
+  query: Joi.object().keys({
+    licenceNumber: Joi.string().required(),
+    organization_id: Joi.string().optional(),
+  }),
 };
 const updateLicence = {
   email: Joi.string(),
@@ -14,5 +31,7 @@ const updateLicence = {
 
 module.exports = {
   syncOrders,
-  updateLicence
+  updateLicence,
+  getOrders,
+  syncContacts,
 };

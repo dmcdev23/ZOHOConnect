@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
 
+const { ObjectId } = Schema.Types;
 const wordPressSchema = mongoose.Schema(
   {
     userId: {
@@ -16,7 +17,8 @@ const wordPressSchema = mongoose.Schema(
     data: {
       type: Object,
     },
-    licenceNumber: { type: String, required: true },
+    licenceNumber: { type: ObjectId, required: true, ref: 'licences' },
+    isSyncedToZoho: { type: Boolean, default: false },
   },
   {
     timestamps: true,
