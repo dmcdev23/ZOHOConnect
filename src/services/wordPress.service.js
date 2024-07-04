@@ -2,10 +2,14 @@ const httpStatus = require('http-status');
 const mongoose = require('mongoose');
 const { WordPressModel, wordPressCustomer } = require('../models');
 const ApiError = require('../utils/ApiError');
+
 const { ObjectId } = mongoose.Types;
 
-const findOrder = async (filter, lean = true, project = {}) => {
-  const data = await WordPressModel.find(filter, project).lean(lean);
+const findOrder = async (filter, lean = true, project = {}, page = 1, limit = 10) => {
+  const data = await WordPressModel.find(filter, project, {
+    skip: (page - 1) * limit,
+    limit,
+  }).lean(lean);
   return data;
 };
 
@@ -49,5 +53,5 @@ module.exports = {
   createCustomer,
   findCustomer,
   getCustomerCount,
-  bulkWrite
+  bulkWrite,
 };

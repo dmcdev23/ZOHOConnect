@@ -39,8 +39,8 @@ const syncOrders = catchAsync(async (req, res) => {
 
 const getOrders = catchAsync(async (req, res) => {
   try {
-    const licence = await wordPressService.find({ _id: ObjectId(req.query.licenceNumber) });
-    res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
+    const licence = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber)},true,{},req.query.page, req.query.limit);
+    res.status(httpStatus.OK).send(licence);
   } catch (e) {
     console.error(e);
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
