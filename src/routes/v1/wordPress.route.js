@@ -9,6 +9,8 @@ const { licenceValidator } = require('../../middlewares/licenceValidator');
 const router = express.Router();
 router.route('/syncOrders').get(auth('user'), validate(wordPressValidaation.syncOrders), wordPressController.syncOrders);
 
+router.route('/syncProduct').get(auth('user'), validate(wordPressValidaation.syncOrders), wordPressController.syncProduct);
+
 router.route('/getOrders').get(auth('user'), validate(wordPressValidaation.getOrders), wordPressController.getOrders);
 
 router
@@ -18,6 +20,10 @@ router
 router
   .route('/syncCustomerToZoho')
   .get(auth('user'), validate(wordPressValidaation.syncContacts), licenceValidator, wordPressController.syncCustomerToZoho);
+
+router
+  .route('/syncProductToZoho')
+  .get(auth('user'), validate(wordPressValidaation.syncContacts), licenceValidator, wordPressController.syncProductToZoho);
 
 router
   .route('/linkLicence')

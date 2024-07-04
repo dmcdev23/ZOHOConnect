@@ -189,6 +189,19 @@ const postCreateContact = async (req) => {
   }
 }
 
+const postCreateItem = async (req) => {
+  try {
+    const body = {
+      endpoint: '/items' + `?organization_id=${req.query.organization_id}`,
+      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      data: req.body,
+    }
+    return await post(body);
+  }catch (e) {
+    return e
+  }
+}
+
 
 const transformData = async (req,data, transformWhat) => {
 try{
@@ -269,7 +282,24 @@ try{
       }catch (e) {
         throw e;
       }
-    }
+    },
+    createProducts: (element)=> {
+      try {
+        return {
+          "group_name": element?.data?.name,
+          "unit": "qty",
+          "item_type": "sales",
+          "product_type": "goods",
+          "description": "element?.data?.description",
+          "name": element?.data?.name,
+          "rate": parseFloat(element?.data?.price),
+          "initial_stock": element?.data?.stock_quantity,
+          "sku": element?.data?.sku
+        }
+      }catch (e) {
+        throw e;
+      }
+    },
   };
   return data.map(element => {
     return transformMap[transformWhat](element);
@@ -294,5 +324,6 @@ module.exports = {
   getSale ,
   getLicence,
   postCreateContact,
-  transformData
+  transformData,
+  postCreateItem
 };
