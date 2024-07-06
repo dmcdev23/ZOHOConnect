@@ -26,6 +26,10 @@ router
   .get(auth('user'), validate(wordPressValidaation.syncContacts), licenceValidator, wordPressController.syncProductToZoho);
 
 router
+  .route('/syncOrderToZoho')
+  .get(auth('user'), validate(wordPressValidaation.syncContacts), licenceValidator, wordPressController.syncOrderToZoho);
+
+router
   .route('/linkLicence')
   .post(validate(wordPressValidaation.updateLicence, { allowUnknown: true }), wordPressController.linkLicence);
 

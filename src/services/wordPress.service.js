@@ -5,10 +5,10 @@ const ApiError = require('../utils/ApiError');
 
 const { ObjectId } = mongoose.Types;
 
-const findOrder = async (filter, lean = true, project = {}, page = 1, limit = 10) => {
+const findOrder = async (filter, lean = true, project = {}, options = { page: 1, limit: 10 }) => {
   const data = await WordPressModel.find(filter, project, {
-    skip: (page - 1) * limit,
-    limit,
+    skip: (options.page - 1) * options.limit,
+    limit: options.limit,
   }).lean(lean);
   return data;
 };
@@ -72,6 +72,17 @@ const bulkWriteItems = async (pipeline) => {
   const data = await wordPressProduct.bulkWrite(pipeline);
   return data;
 };
+
+const bulkWriteOrders = async (pipeline) => {
+  const data = await WordPressModel.bulkWrite(pipeline);
+  return data;
+};
+
+const getOrerCount = async (filter) => {
+  const data = await WordPressModel.count(filter);
+  return data;
+};
+
 module.exports = {
   findOrder,
   createOrder,
@@ -83,4 +94,6 @@ module.exports = {
   getProductCount,
   bulkWriteItems,
   findProduct,
+  getOrerCount,
+  bulkWriteOrders
 };

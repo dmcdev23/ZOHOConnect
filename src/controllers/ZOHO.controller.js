@@ -3,6 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 const { licenceService, wordPressService } = require('../services');
 const { post, put, getDynamic } = require('../commonServices/axios.service');
 const { tr } = require('faker/lib/locales');
+const { WordPressModel, wordPressCustomer } = require('../models');
 const createLicence = catchAsync(async (req, res) => {
   try {
     const data = await licenceService.createLicence(req.body);
@@ -182,7 +183,7 @@ const postCreateContact = async (req) => {
     return await post({
       endpoint: '/contacts'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
-      data: JSON.stringify(req.body),
+      data: req.body,
     });
   }catch (e) {
     return e
@@ -202,9 +203,24 @@ const postCreateItem = async (req) => {
   }
 }
 
+const postCreateOrder = async (req)=>{
+  try {
+    const data  = await post({
+      endpoint: '/salesorders'  +`?organization_id=${req.query.organization_id}`,
+      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      data: req.body,
+    });
+    return data;
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
 
 const transformData = async (req,data, transformWhat) => {
 try{
+  let contactMap = {};
   const transformMap = {
     createCustomers: (element)=> {
       try {
@@ -241,7 +257,7 @@ try{
             email: element?.data?.billing?.email,
             phone: element?.data?.billing?.phone,
             mobile: undefined,
-            is_primary_contact: element.data.is_paying_customer,
+            is_primary_contact: true,
           }],
           default_templates: {
             invoice_template_id: undefined,
@@ -300,7 +316,42 @@ try{
         throw e;
       }
     },
+    createOrders: (element)=> {
+      try {
+        if(contactMap[element.data.customer_id])
+        return {
+          "customer_id": contactMap[element.data.customer_id],
+          "date": !!element.data.date_created ? element.data.date_created.split('T')[0] : null,
+          "shipment_date": element.data.date_completed_gmt,
+          "line_items": element.data.line_items.map(ele=>({
+            "item_id": ele.product_id,
+            "name": ele.name,
+            "rate": ele.subtotal,
+            "quantity": ele.quantity,
+            "unit": "qty",
+            "tax_percentage": (ele.total_tax/ele.total) * 100,
+            "item_total": ele.total
+          })),
+          "notes": element.data.customer_note,
+          "discount": (element.data.discount_total/element.data.total)* 100,
+          "is_discount_before_tax": true,
+          "discount_type": "entity_level",
+          "exchange_rate": 1
+        }
+      }catch (e) {
+        throw e;
+      }
+    },
   };
+  if(transformWhat == 'createOrders'){
+    let t = await wordPressCustomer.find({id: {
+      $in: data.map(ele=>ele.data.customer_id),
+      }}).lean()
+    t.forEach(ele=>{
+      contactMap[ele.id] = ele.data.contact_id;
+    })
+    data = data.filter(ele=>!!contactMap[ele.data.customer_id])
+  }
   return data.map(element => {
     return transformMap[transformWhat](element);
   })
@@ -325,5 +376,6 @@ module.exports = {
   getLicence,
   postCreateContact,
   transformData,
-  postCreateItem
+  postCreateItem,
+  postCreateOrder
 };

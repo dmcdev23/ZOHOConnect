@@ -68,7 +68,7 @@ const syncProduct = catchAsync(async (req, res) => {
 
 const getOrders = catchAsync(async (req, res) => {
   try {
-    const licence = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber)},true,{},req.query.page, req.query.limit);
+    const licence = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber)},true,{},{page: req.query.page,limit: req.query.limit});
     res.status(httpStatus.OK).send(licence);
   } catch (e) {
     console.error(e);
@@ -179,6 +179,20 @@ const syncProductToZoho = catchAsync(async (req, res) => {
   }
 })
 
+const syncOrderToZoho = catchAsync(async (req, res) => {
+  try {
+    if(!req.query.organization_id) res.status(httpStatus.BAD_REQUEST).send({msg: 'organization_id is required'});
+    await syncToZohoFromGeneric(req, 'createOrders');
+    res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
+  } catch (e) {
+    console.error(e);
+    res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
+      statusText: e.response.statusText,
+      data: e.response.data
+    } : e);
+  }
+})
+
 module.exports = {
   syncOrders,
   linkLicence,
@@ -187,6 +201,7 @@ module.exports = {
   syncCustomerToZoho,
   syncProduct,
   syncProductToZoho,
+  syncOrderToZoho,
 };
 
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
@@ -245,56 +260,66 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
 }
 
 const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
-  const serviceMap = {
-    customers: wordPressService.findCustomer,
-    createCustomers: wordPressService.findCustomer,
-    bulkWritecreateCustomers: wordPressService.bulkWrite,
-    products: wordPressService.findProduct,
-    createProducts: wordPressService.findProduct,
-    bulkWritecreateProducts: wordPressService.bulkWriteItems,
-  }
-  const countMap = {
-    customers: wordPressService.getCustomerCount,
-    createProducts: wordPressService.getProductCount,
-    createCustomers: wordPressService.getCustomerCount,
-  }
-  const ZohoserviceMap = {
-    customers: wordPressService.findCustomer,
-    createCustomers: ZOHOController.postCreateContact,
-    createProducts: ZOHOController.postCreateItem,
-  }
-  const count = await countMap[getWhat]({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
-  const limit = 500;
-  let responseArray = [];
-  let errorArray = []
-  for (let i = 1;i< count ; i++) {
-    let data = await serviceMap[getWhat](
-      { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false},
-      true,
-      {},
-      {skip: i* limit, limit: limit});
-    let transformData = await ZOHOController.transformData(req,data,getWhat)
-    for(let i = 0; i < transformData.length; ++i){
-      req.body = transformData[i];
-      const response = await ZohoserviceMap[getWhat](req);
-      if(response && response.status >= 200 && response.status < 300 ) {
-        responseArray.push(
-          { updateOne :
-            {
-              "filter": {_id: data[i]._id},
-                "update": {
-                  $set: {
-                    isSyncedToZoho: true
+  try {
+    const serviceMap = {
+      customers: wordPressService.findCustomer,
+      createCustomers: wordPressService.findCustomer,
+      bulkWritecreateCustomers: wordPressService.bulkWrite,
+      products: wordPressService.findProduct,
+      createProducts: wordPressService.findProduct,
+      createOrders: wordPressService.findOrder,
+      bulkWritecreateProducts: wordPressService.bulkWriteItems,
+      bulkWritecreateOrders: wordPressService.bulkWriteOrders,
+    }
+    const countMap = {
+      customers: wordPressService.getCustomerCount,
+      createProducts: wordPressService.getProductCount,
+      createCustomers: wordPressService.getCustomerCount,
+      createOrders: wordPressService.getOrerCount,
+    }
+    const ZohoserviceMap = {
+      customers: wordPressService.findCustomer,
+      createCustomers: ZOHOController.postCreateContact,
+      createProducts: ZOHOController.postCreateItem,
+      createOrders: ZOHOController.postCreateOrder,
+    }
+    const count = await countMap[getWhat]({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
+    const limit = 500;
+    let responseArray = [];
+    let errorArray = []
+    for (let i = 1;i< count/limit + 1; i++) {
+      let data = await serviceMap[getWhat](
+        { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false},
+        true,
+        {},
+        {skip: i* limit, limit: limit});
+      let transformData = await ZOHOController.transformData(req,data,getWhat)
+      for(let j = 0; j < transformData.length; ++j){
+        req.body = transformData[j];
+        const response = await ZohoserviceMap[getWhat](req);
+        if(response && response.status >= 200 && response.status < 300 ) {
+          responseArray.push(
+            { updateOne :
+                {
+                  "filter": {_id: data[i]._id},
+                  "update": {
+                    $set: {
+                      isSyncedToZoho: true,
+                      contact_id : getWhat == 'createCustomers'? response?.data?.contact?.contact_id: undefined
+                    }
                   }
                 }
             }
-          }
           )
-      } else{
-        errorArray.push(response);
+        } else{
+          errorArray.push(response);
+        }
+        console.log(responseArray);
       }
-      console.log(responseArray);
     }
+    let d = await serviceMap[`bulkWrite${getWhat}`](responseArray);
+  }catch (e) {
+    console.log(e);
+    throw e;
   }
-  let d = await serviceMap[`bulkWrite${getWhat}`](responseArray);
 }
