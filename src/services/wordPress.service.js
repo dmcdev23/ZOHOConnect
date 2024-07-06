@@ -13,6 +13,90 @@ const findOrder = async (filter, lean = true, project = {}, options = { page: 1,
   return data;
 };
 
+const findOrderAggregate = async (filter, lean = true, project = {}, options = { page: 1, limit: 10 }) => {
+  const data = await WordPressModel.aggregate([
+    {
+      $match: filter,
+    },
+    {
+      $lookup: {
+        from: 'wordpresscustomers',
+        localField: 'data.billing.email',
+        foreignField: 'data.billing.email',
+        as: 'customer',
+      },
+    },
+    {
+      $unwind: '$customer',
+    },
+    {
+      $unwind: '$data.line_items',
+    },
+    {
+      $lookup: {
+        from: 'wordpressproducts',
+        localField: 'data.line_items.sku',
+        foreignField: 'data.sku',
+        as: 'product',
+      },
+    },
+    {
+      $unwind: '$product',
+    },
+    {
+      $project: {
+        customer_id: '$customer.contact_id',
+        date: '$data.date_created',
+        shipment_date: '$data.date_completed_gmt',
+        line_items: {
+          item_id: '$product.item_id',
+          name: '$data.line_items.name',
+          rate: '$data.line_items.subtotal',
+          quantity: '$data.line_items.quantity',
+          unit: 'qty',
+          tax_percentage: {
+            $multiply: [
+              { $divide: [{ $toDouble: '$data.line_items.total_tax' }, { $toDouble: '$data.line_items.total' }] },
+              100,
+            ],
+          },
+          item_total: '$data.line_items.total',
+        },
+        notes: '$data.customer_note',
+        discount: { $multiply: [{ $divide: [{ $toDouble: '$data.discount_total' }, { $toDouble: '$data.total' }] }, 100] },
+        is_discount_before_tax: true,
+        discount_type: 'entity_level',
+        exchange_rate: 1,
+      },
+    },
+    {
+      $match: {
+        customer_id: {
+          $exists: true,
+        },
+        'line_items.item_id': {
+          $exists: true,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$_id',
+        customer_id: { $first: '$customer_id' },
+        date: { $first: '$date' },
+        shipment_date: { $first: '$shipment_date' },
+        notes: { $first: '$notes' },
+        discount: { $first: '$discount' },
+        is_discount_before_tax: { $first: '$is_discount_before_tax' },
+        discount_type: { $first: '$discount_type' },
+        exchange_rate: { $first: '$exchange_rate' },
+        line_items: { $push: '$line_items' },
+      },
+    },
+  ]);
+  return data;
+};
+
 const findCustomer = async (filter, lean = true, project = {}, options = {}) => {
   const data = await wordPressCustomer.find(filter, project, options).lean(lean);
   return data;
@@ -79,8 +163,90 @@ const bulkWriteOrders = async (pipeline) => {
 };
 
 const getOrerCount = async (filter) => {
-  const data = await WordPressModel.count(filter);
-  return data;
+  const [data] = await WordPressModel.aggregate([
+    {
+      $match: filter,
+    },
+    {
+      $lookup: {
+        from: 'wordpresscustomers',
+        localField: 'data.billing.email',
+        foreignField: 'data.billing.email',
+        as: 'customer',
+      },
+    },
+    {
+      $unwind: '$customer',
+    },
+    {
+      $unwind: '$data.line_items',
+    },
+    {
+      $lookup: {
+        from: 'wordpressproducts',
+        localField: 'data.line_items.sku',
+        foreignField: 'data.sku',
+        as: 'product',
+      },
+    },
+    {
+      $unwind: '$product',
+    },
+    {
+      $project: {
+        customer_id: '$customer.contact_id',
+        date: '$data.date_created',
+        shipment_date: '$data.date_completed_gmt',
+        line_items: {
+          item_id: '$product.item_id',
+          name: '$data.line_items.name',
+          rate: '$data.line_items.subtotal',
+          quantity: '$data.line_items.quantity',
+          unit: 'qty',
+          tax_percentage: {
+            $multiply: [
+              { $divide: [{ $toDouble: '$data.line_items.total_tax' }, { $toDouble: '$data.line_items.total' }] },
+              100,
+            ],
+          },
+          item_total: '$data.line_items.total',
+        },
+        notes: '$data.customer_note',
+        discount: { $multiply: [{ $divide: [{ $toDouble: '$data.discount_total' }, { $toDouble: '$data.total' }] }, 100] },
+        is_discount_before_tax: true,
+        discount_type: 'entity_level',
+        exchange_rate: 1,
+      },
+    },
+    {
+      $match: {
+        customer_id: {
+          $exists: true,
+        },
+        'line_items.item_id': {
+          $exists: true,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$_id',
+        customer_id: { $first: '$customer_id' },
+        date: { $first: '$date' },
+        shipment_date: { $first: '$shipment_date' },
+        notes: { $first: '$notes' },
+        discount: { $first: '$discount' },
+        is_discount_before_tax: { $first: '$is_discount_before_tax' },
+        discount_type: { $first: '$discount_type' },
+        exchange_rate: { $first: '$exchange_rate' },
+        line_items: { $push: '$line_items' },
+      },
+    },
+    {
+      $count: 'count',
+    },
+  ]);
+  return data.count;
 };
 
 module.exports = {
@@ -95,5 +261,6 @@ module.exports = {
   bulkWriteItems,
   findProduct,
   getOrerCount,
-  bulkWriteOrders
+  bulkWriteOrders,
+  findOrderAggregate,
 };

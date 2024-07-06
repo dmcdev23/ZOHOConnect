@@ -19,6 +19,9 @@ const wordPressCustomerSchema = mongoose.Schema(
     },
     licenceNumber: { type: ObjectId, required: true, ref: 'licences' },
     isSyncedToZoho: { type: Boolean, default: false },
+    contact_id: {
+      type: String,
+    },
   },
   {
     timestamps: true,

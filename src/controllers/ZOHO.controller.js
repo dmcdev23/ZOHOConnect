@@ -208,19 +208,18 @@ const postCreateOrder = async (req)=>{
     const data  = await post({
       endpoint: '/salesorders'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
-      data: req.body,
+      data: JSON.stringify(req.body),
     });
     return data;
   } catch (e) {
     console.error(e);
-    throw e;
+    return e;
   }
 }
 
 
 const transformData = async (req,data, transformWhat) => {
 try{
-  let contactMap = {};
   const transformMap = {
     createCustomers: (element)=> {
       try {
@@ -228,12 +227,8 @@ try{
         return {
           contact_name: element.data.first_name + element.data.last_name,
           company_name: element?.data?.billing?.company,
-          payment_terms: undefined,
-          currency_id: undefined,
-          website: undefined,
           contact_type: "customer",
           billing_address: {
-            attention: undefined,
             address: element?.data?.billing?.address_1,
             street2: element?.data?.billing?.address_2,
             city: element?.data?.billing?.city,
@@ -242,7 +237,6 @@ try{
             country: element?.data?.billing?.country,
           },
           shipping_address: {
-            attention: undefined,
             address: element.data.shipping.address_1,
             street2: element.data.shipping.address_2,
             city: element.data.shipping.city,
@@ -251,49 +245,12 @@ try{
             country: element.data.shipping.country,
           },
           contact_persons: [{
-            salutation: undefined,
             first_name: element.data.first_name,
             last_name: element.data.last_name,
             email: element?.data?.billing?.email,
             phone: element?.data?.billing?.phone,
-            mobile: undefined,
             is_primary_contact: true,
           }],
-          default_templates: {
-            invoice_template_id: undefined,
-            invoice_template_name: undefined,
-            estimate_template_id: undefined,
-            estimate_template_name: undefined,
-            creditnote_template_id: undefined,
-            creditnote_template_name: undefined,
-            invoice_email_template_id: undefined,
-            invoice_email_template_name: undefined,
-            estimate_email_template_id: undefined,
-            estimate_email_template_name: undefined,
-            creditnote_email_template_id: undefined,
-            creditnote_email_template_name: undefined,
-          },
-          language_code: undefined,
-          notes: undefined,
-          vat_reg_no: undefined,
-          tax_reg_no: undefined,
-          vat_treatment: undefined,
-          tax_treatment: undefined,
-          tax_regime: undefined,
-          is_tds_registered: undefined,
-          avatax_exempt_no: undefined,
-          avatax_use_code: undefined,
-          tax_exemption_id: undefined,
-          tax_authority_id: undefined,
-          tax_id: undefined,
-          is_taxable: undefined,
-          facebook: undefined,
-          twitter: undefined,
-          place_of_contact: undefined,
-          gst_no: undefined,
-          gst_treatment: undefined,
-          tax_authority_name: undefined,
-          tax_exemption_code: undefined,
         }
       }catch (e) {
         throw e;
@@ -318,40 +275,18 @@ try{
     },
     createOrders: (element)=> {
       try {
-        if(contactMap[element.data.customer_id])
-        return {
-          "customer_id": contactMap[element.data.customer_id],
-          "date": !!element.data.date_created ? element.data.date_created.split('T')[0] : null,
-          "shipment_date": element.data.date_completed_gmt,
-          "line_items": element.data.line_items.map(ele=>({
-            "item_id": ele.product_id,
-            "name": ele.name,
-            "rate": ele.subtotal,
-            "quantity": ele.quantity,
-            "unit": "qty",
-            "tax_percentage": (ele.total_tax/ele.total) * 100,
-            "item_total": ele.total
-          })),
-          "notes": element.data.customer_note,
-          "discount": (element.data.discount_total/element.data.total)* 100,
-          "is_discount_before_tax": true,
-          "discount_type": "entity_level",
-          "exchange_rate": 1
+        let order = {
+          ...element,
+          "date": !!element.date ? element.date.split('T')[0] : null,
+          "shipment_date": !!element.shipment_date? element.shipment_date.split('T')[0] : null,
         }
+        delete order._id
+        return order;
       }catch (e) {
         throw e;
       }
     },
   };
-  if(transformWhat == 'createOrders'){
-    let t = await wordPressCustomer.find({id: {
-      $in: data.map(ele=>ele.data.customer_id),
-      }}).lean()
-    t.forEach(ele=>{
-      contactMap[ele.id] = ele.data.contact_id;
-    })
-    data = data.filter(ele=>!!contactMap[ele.data.customer_id])
-  }
   return data.map(element => {
     return transformMap[transformWhat](element);
   })

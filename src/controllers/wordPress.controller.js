@@ -267,7 +267,7 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
       bulkWritecreateCustomers: wordPressService.bulkWrite,
       products: wordPressService.findProduct,
       createProducts: wordPressService.findProduct,
-      createOrders: wordPressService.findOrder,
+      createOrders: wordPressService.findOrderAggregate,
       bulkWritecreateProducts: wordPressService.bulkWriteItems,
       bulkWritecreateOrders: wordPressService.bulkWriteOrders,
     }
@@ -298,18 +298,29 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
         req.body = transformData[j];
         const response = await ZohoserviceMap[getWhat](req);
         if(response && response.status >= 200 && response.status < 300 ) {
-          responseArray.push(
-            { updateOne :
-                {
-                  "filter": {_id: data[i]._id},
-                  "update": {
-                    $set: {
-                      isSyncedToZoho: true,
-                      contact_id : getWhat == 'createCustomers'? response?.data?.contact?.contact_id: undefined
-                    }
+          let UpdateObject = { updateOne :
+              {
+                "filter": {_id: data[i]._id},
+                "update": {
+                  $set: {
+                    isSyncedToZoho: true
                   }
                 }
-            }
+              }
+          }
+          switch (getWhat) {
+            case "createCustomers":
+              UpdateObject.contact_id = response?.data?.contact?.contact_id;
+              UpdateObject.email = response?.data?.contact?.email;
+              break;
+            case "createProducts":
+              UpdateObject.item_id = response?.data?.item_id;
+              break;
+            case "createOrders":
+              UpdateObject.salesorder_id = response?.data?.salesorder?.salesorder_id;
+          }
+          responseArray.push(
+            UpdateObject
           )
         } else{
           errorArray.push(response);
