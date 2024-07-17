@@ -13,6 +13,10 @@ router.route('/syncProduct').get(auth('user'), validate(wordPressValidaation.syn
 
 router.route('/getOrders').get(auth('user'), validate(wordPressValidaation.getOrders), wordPressController.getOrders);
 
+router.route('/getProduct').get(auth('user'), validate(wordPressValidaation.getOrders), wordPressController.getOrders);
+
+router.route('/getCustomer').get(auth('user'), validate(wordPressValidaation.getOrders), wordPressController.getOrders);
+
 router
   .route('/syncCustomer')
   .get(auth('user'), validate(wordPressValidaation.syncContacts), wordPressController.syncCustomer);

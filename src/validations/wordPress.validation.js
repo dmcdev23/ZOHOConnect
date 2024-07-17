@@ -11,8 +11,8 @@ const getOrders = {
   query: Joi.object().keys({
     licenceNumber: Joi.string().required(),
     organization_id: Joi.string().optional(),
-    page: Joi.number().optional(),
-    limit: Joi.number().optional(),
+    page: Joi.number().default(1),
+    limit: Joi.number().default(10),
   }),
 };
 

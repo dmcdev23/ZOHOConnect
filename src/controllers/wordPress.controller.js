@@ -79,6 +79,32 @@ const getOrders = catchAsync(async (req, res) => {
   }
 });
 
+const getProduct = catchAsync(async (req, res) => {
+  try {
+    const licence = await wordPressService.findProduct({ licenceNumber: ObjectId(req.query.licenceNumber)},true,{},{page: req.query.page,limit: req.query.limit});
+    res.status(httpStatus.OK).send(licence);
+  } catch (e) {
+    console.error(e);
+    res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
+      statusText: e.response.statusText,
+      data: e.response.data
+    } : e);
+  }
+});
+
+const getCustomer = catchAsync(async (req, res) => {
+  try {
+    const licence = await wordPressService.findCustomer({ licenceNumber: ObjectId(req.query.licenceNumber)},true,{},{page: req.query.page,limit: req.query.limit});
+    res.status(httpStatus.OK).send(licence);
+  } catch (e) {
+    console.error(e);
+    res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
+      statusText: e.response.statusText,
+      data: e.response.data
+    } : e);
+  }
+});
+
 const linkLicence = catchAsync(async (req, res) => {
   try {
     const { body } = req;
