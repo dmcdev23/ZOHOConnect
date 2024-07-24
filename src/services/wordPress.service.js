@@ -22,7 +22,7 @@ const findOrderAggregate = async (filter, lean = true, project = {}, options = {
       $lookup: {
         from: 'wordpresscustomers',
         localField: 'data.billing.email',
-        foreignField: 'data.billing.email',
+        foreignField: 'data.email',
         as: 'customer',
       },
     },

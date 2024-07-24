@@ -25,7 +25,7 @@ const syncOrders = catchAsync(async (req, res) => {
       true,
       { id: 1, _id: 0 }
     );
-    fetchFromOrder(WooCommerce, IdsToExclude, req);
+    await fetchFromOrder(WooCommerce, IdsToExclude, req);
 
     res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
   } catch (e) {
@@ -54,7 +54,7 @@ const syncProduct = catchAsync(async (req, res) => {
       true,
       { id: 1, _id: 0 }
     );
-    fetchFromGeneric(WooCommerce, IdsToExclude, req,'products');
+    await fetchFromGeneric(WooCommerce, IdsToExclude, req,'products');
 
     res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
   } catch (e) {
@@ -166,7 +166,7 @@ const syncCustomer = catchAsync(async (req, res) => {
       true,
       { id: 1, _id: 0 }
     );
-    fetchFromGeneric(WooCommerce, IdsToExclude, req, 'customers');
+    await fetchFromGeneric(WooCommerce, IdsToExclude, req, 'customers');
     res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
   } catch (e) {
     console.error(e);
@@ -181,7 +181,7 @@ const syncCustomerToZoho = catchAsync(async (req, res) => {
   try {
     if(!req.query.organization_id) res.status(httpStatus.BAD_REQUEST).send({msg: 'organization_id is required'});
     await syncToZohoFromGeneric(req, 'createCustomers');
-    res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
+    res.status(httpStatus.OK).send({ msg: 'Customer sync in progress' });
   } catch (e) {
     console.error(e);
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
@@ -194,7 +194,7 @@ const syncCustomerToZoho = catchAsync(async (req, res) => {
 const syncProductToZoho = catchAsync(async (req, res) => {
   try {
     if(!req.query.organization_id) res.status(httpStatus.BAD_REQUEST).send({msg: 'organization_id is required'});
-    syncToZohoFromGeneric(req, 'createProducts');
+    await syncToZohoFromGeneric(req, 'createProducts');
     res.status(httpStatus.OK).send({ msg: 'Product sync in progress' });
   } catch (e) {
     console.error(e);
@@ -313,7 +313,7 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
     const limit = 500;
     let responseArray = [];
     let errorArray = []
-    for (let i = 1;i< count/limit + 1; i++) {
+    for (let i = 0;i< count/limit + 1; i++) {
       let data = await serviceMap[getWhat](
         { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false},
         true,
@@ -326,7 +326,7 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
         if(response && response.status >= 200 && response.status < 300 ) {
           let UpdateObject = { updateOne :
               {
-                "filter": {_id: data[i]._id},
+                "filter": {_id: data[j]._id},
                 "update": {
                   $set: {
                     isSyncedToZoho: true
@@ -336,14 +336,14 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
           }
           switch (getWhat) {
             case "createCustomers":
-              UpdateObject.contact_id = response?.data?.contact?.contact_id;
-              UpdateObject.email = response?.data?.contact?.email;
+              UpdateObject.updateOne.update.$set.contact_id = response?.data?.contact?.contact_id;
+              UpdateObject.updateOne.update.$set.email = response?.data?.contact?.email;
               break;
             case "createProducts":
-              UpdateObject.item_id = response?.data?.item_id;
+              UpdateObject.updateOne.update.$set.item_id = response?.data?.item.item_id;
               break;
             case "createOrders":
-              UpdateObject.salesorder_id = response?.data?.salesorder?.salesorder_id;
+              UpdateObject.updateOne.update.$set.salesorder_id = response?.data?.salesorder?.salesorder_id;
           }
           responseArray.push(
             UpdateObject

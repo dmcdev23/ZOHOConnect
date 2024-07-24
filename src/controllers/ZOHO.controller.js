@@ -206,7 +206,7 @@ const postCreateItem = async (req) => {
 const postCreateOrder = async (req)=>{
   try {
     const data  = await post({
-      endpoint: '/salesorders'  +`?organization_id=${req.query.organization_id}`,
+      endpoint: 'salesorders'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
     });
@@ -247,7 +247,7 @@ try{
           contact_persons: [{
             first_name: element.data.first_name,
             last_name: element.data.last_name,
-            email: element?.data?.billing?.email,
+            email: element?.data?.email,
             phone: element?.data?.billing?.phone,
             is_primary_contact: true,
           }],
