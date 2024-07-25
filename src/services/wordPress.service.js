@@ -44,6 +44,13 @@ const findOrderAggregate = async (filter, lean = true, project = {}, options = {
       $unwind: '$product',
     },
     {
+      $match: {
+        $expr: {
+          $eq: ['$data.line_items.product_id', '$product.id'],
+        },
+      },
+    },
+    {
       $project: {
         customer_id: '$customer.contact_id',
         date: '$data.date_created',
@@ -191,6 +198,13 @@ const getOrerCount = async (filter) => {
     },
     {
       $unwind: '$product',
+    },
+    {
+      $match: {
+        $expr: {
+          $eq: ['$data.line_items.product_id', '$product.id'],
+        },
+      },
     },
     {
       $project: {

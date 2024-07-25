@@ -107,10 +107,13 @@ const generateToken = catchAsync(async (req, res) => {
 const recieveToken = catchAsync(async (req, res) => {
   try {
     console.log(req.query);
+    const licenceCheck = await Licence.findOne(
+      { _id: req.query.state },
+    ).lean();
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=1000.0AV2T1IN2BJ8UQF6HNRJ6SZUBZW0PF&client_secret=3488dc9db9f10d32184522a46c0c1d43a9973e7730&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`,
+      url: `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`,
     };
     const response = await axios.request(config);
     const licence = await Licence.updateOne(
