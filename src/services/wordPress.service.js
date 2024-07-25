@@ -171,7 +171,7 @@ const getOrerCount = async (filter) => {
       $lookup: {
         from: 'wordpresscustomers',
         localField: 'data.billing.email',
-        foreignField: 'data.billing.email',
+        foreignField: 'data.email',
         as: 'customer',
       },
     },

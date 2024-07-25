@@ -313,7 +313,7 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
     const limit = 500;
     let responseArray = [];
     let errorArray = []
-    for (let i = 0;i< count/limit + 1; i++) {
+    for (let i = 1;i< count/limit + 1; i++) {
       let data = await serviceMap[getWhat](
         { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false},
         true,
