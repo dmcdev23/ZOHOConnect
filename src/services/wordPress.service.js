@@ -136,7 +136,12 @@ const createOrder = async (req, data) => {
 
 const createCustomer = async (req, data) => {
   data = data.map((ele) => ({
-    data: ele,
+    data: {
+      first_name: ele.first_name,
+      last_name: ele.last_name,
+      billing: ele.billing,
+      shipping: ele.shipping,
+    },
     userId: req.user._id.toString(),
     id: ele.id,
     licenceNumber: ObjectId(req.query.licenceNumber),
@@ -146,12 +151,16 @@ const createCustomer = async (req, data) => {
 
 const createProduct = async (req, data) => {
   data = data.map((ele) => ({
-    data: { ...ele, meta_data: ele.meta_data.filter((element) => element.key !== 'amazonS3_cache') },
-    userId: req.user._id.toString(),
+    data: { name: ele.name,
+      price: Number(ele.price),
+      stock_quantity: ele.stock_quantity,
+      sku: ele.sku
+    },
+    userId: req.user._id,
     id: ele.id,
     licenceNumber: ObjectId(req.query.licenceNumber),
   }));
-  return await wordPressProduct.create(data);
+  return await wordPressProduct.insertMany(data);
 };
 
 const bulkWrite = async (pipeline) => {
