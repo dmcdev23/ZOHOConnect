@@ -63,7 +63,7 @@ wordPressSchema.plugin(paginate);
  */
 wordPressSchema.index({ id: -1 });
 wordPressSchema.index({ licenceNumber: -1, userId: -1 });
-wordPressSchema.index({ licenceNumber: -1, userId: -1, id: -1 }, { unique: true });
+wordPressSchema.index({ licenceNumber: -1, userId: -1, id: -1 });
 
 const wordPress = mongoose.model('wordPress', wordPressSchema);
 module.exports = wordPress;
