@@ -318,7 +318,7 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
         { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false},
         true,
         {},
-        {skip: i* limit, limit: limit});
+        {skip: (i-1) * limit, limit: limit});
       let transformData = await ZOHOController.transformData(req,data,getWhat)
       for(let j = 0; j < transformData.length; ++j){
         req.body = transformData[j];
