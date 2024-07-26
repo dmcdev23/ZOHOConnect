@@ -118,7 +118,7 @@ const recieveToken = catchAsync(async (req, res) => {
     const response = await axios.request(config);
     console.log(response);
     if(!response.data?.access_token) {
-      res.send(response);
+      res.send(response.data);
     //   res.send({
     //   msg: "response.data?.access_token bnot found",
     //   data: {
