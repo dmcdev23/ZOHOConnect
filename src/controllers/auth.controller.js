@@ -113,7 +113,7 @@ const recieveToken = catchAsync(async (req, res) => {
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`,
+      url: `https://accounts.zoho.in/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`,
     };
     const response = await axios.request(config);
     console.log(response);
