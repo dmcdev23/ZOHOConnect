@@ -20,7 +20,7 @@ const licenceSchema = mongoose.Schema(
     },
     expireAt: {
       type: Date,
-      default: () => {
+      set: () => {
         const now = new Date();
         now.setMinutes(now.getMinutes() + 55);
         return now;
@@ -37,7 +37,7 @@ const licenceSchema = mongoose.Schema(
     licenceNumber: { type: String },
     licenceExpiry: {
       type: Date,
-      default: () => {
+      set: () => {
         const now = new Date();
         now.setMonth(now.getMonth() + 1);
         return now;
