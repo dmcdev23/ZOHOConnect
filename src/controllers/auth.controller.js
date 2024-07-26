@@ -180,19 +180,19 @@ const linkZOHO = catchAsync(async (req, res) => {
     let URL = `https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${req.query.client_id}&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
     switch (req.query.licenceNumber){
       case 'in':
-        URL = `https://accounts.zoho.in/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`;
+        URL = `https://accounts.zoho.in/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${req.query.client_id}&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
         break;
       case 'us':
-        URL = `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`;
+        URL = `https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${req.query.client_id}&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
         break;
       case 'eu':
-        URL = `https://accounts.zoho.eu/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`;
+        URL = `https://accounts.zoho.eu/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${req.query.client_id}&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
         break;
       case 'au':
-        URL = `https://accounts.zoho.com.au/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`;
+        URL = `https://accounts.zoho.com.au/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${req.query.client_id}&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
         break;
       case 'ca':
-        URL = `https://accounts.zohocloud.ca/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`;
+        URL = `https://accounts.zohocloud.ca/oauth/v2/auth?scope=ZohoInventory.fullaccess.all&client_id=${req.query.client_id}&response_type=code&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&access_type=offline&prompt=consent&state=${licenceNumber._id.toString()}`;
         break;
       default:
         URL = `https://accounts.zoho.in/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`;
