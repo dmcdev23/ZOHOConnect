@@ -116,6 +116,10 @@ const recieveToken = catchAsync(async (req, res) => {
       url: `https://accounts.zoho.com/oauth/v2/token?code=${req.query.code}&client_id=${licenceCheck.clientId}&client_secret=${licenceCheck.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`,
     };
     const response = await axios.request(config);
+    if(response.data?.access_token) res.send({
+      msg: "response.data?.access_token bnot found",
+      response
+    });
     const licence = await Licence.updateOne(
       { _id: req.query.state },
       {
