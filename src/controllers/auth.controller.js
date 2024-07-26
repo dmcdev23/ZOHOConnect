@@ -118,7 +118,7 @@ const recieveToken = catchAsync(async (req, res) => {
     const response = await axios.request(config);
     if(!response.data?.access_token) res.send({
       msg: "response.data?.access_token bnot found",
-      response
+      data: response
     });
     const licence = await Licence.updateOne(
       { _id: req.query.state },
