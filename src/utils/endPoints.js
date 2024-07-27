@@ -1,5 +1,6 @@
+const { zohoEndPoint } = require('./constant');
 module.exports = {
-  GET_ORGNIZATION: 'https://www.zohoapis.in/inventory/v1/organizations',
-  GET_ITEMS: 'https://www.zohoapis.in/inventory/v1/items',
-  GET_CONTACTS: 'https://www.zohoapis.in/inventory/v1/contacts',
+  GET_ORGNIZATION: (region) => `${zohoEndPoint[region]}v1/organizations`,
+  GET_ITEMS: (region) => `${zohoEndPoint[region]}v1/items`,
+  GET_CONTACTS: (region) => `${zohoEndPoint[region]}v1/contacts`,
 };

@@ -1,12 +1,13 @@
 const axios = require('axios');
 const { zohoBaseURL, zohoAuthBaseURL } = require('../config/config');
+const { zohoEndPoint } = require('../utils/constant');
 
-const post = async (data) => {
+const post = async (data, region = 'in') => {
   try {
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: zohoBaseURL + data.endpoint,
+      url: zohoEndPoint[region] + data.endpoint,
       headers: {
         Authorization: `Bearer ${data.accessToken}`,
         'content-type': 'application/json',

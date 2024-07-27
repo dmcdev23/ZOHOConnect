@@ -29,7 +29,7 @@ const getLicenceById = async (id) => {
 };
 const getOrganizations = async (user) => {
   try {
-    return await get(user, GET_ORGNIZATION);
+    return await get(user, GET_ORGNIZATION(user.licenceNumber));
   } catch (e) {
     throw e;
   }
@@ -48,8 +48,8 @@ const getItems = async (req) => {
     return await get(
       req.user.licence[req.query.licenceNumber],
       req.query?.itemId
-        ? `${GET_ITEMS}/${req.query.itemId}/?organization_id=${req.query.organization_id}`
-        : `${GET_ITEMS}/?organization_id=${req.query.organization_id}`
+        ? `${GET_ITEMS(req.user.licence[req.query.licenceNumber].licenceNumber)}/${req.query.itemId}/?organization_id=${req.query.organization_id}`
+        : `${GET_ITEMS(req.user.licence[req.query.licenceNumber].licenceNumber)}/?organization_id=${req.query.organization_id}`
     );
   } catch (e) {
     throw e;
@@ -61,8 +61,8 @@ const getContacts = async (req) => {
     return await get(
       req.user.licence[req.query.licenceNumber],
       req.query?.itemId
-        ? `${GET_ITEMS}/${req.query.itemId}/?organization_id=${req.query.organization_id}`
-        : `${GET_CONTACTS}/?organization_id=${req.query.organization_id}`
+        ? `${GET_ITEMS(req.user.licence[req.query.licenceNumber].licenceNumber)}/${req.query.itemId}/?organization_id=${req.query.organization_id}`
+        : `${GET_CONTACTS((req.user.licence[req.query.licenceNumber].licenceNumber))}/?organization_id=${req.query.organization_id}`
     );
   } catch (e) {
     throw e;

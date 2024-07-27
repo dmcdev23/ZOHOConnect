@@ -181,10 +181,10 @@ const getLicence = catchAsync(async (req, res) => {
 const postCreateContact = async (req) => {
   try {
     return await post({
-      endpoint: '/contactpersons'  +`?organization_id=${req.query.organization_id}`,
+      endpoint: 'contactpersons'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: req.body,
-    });
+    }, req.user.licence[req.query.licenceNumber]);
   }catch (e) {
     return e
   }

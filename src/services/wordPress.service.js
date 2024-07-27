@@ -151,11 +151,7 @@ const createCustomer = async (req, data) => {
 
 const createProduct = async (req, data) => {
   data = data.map((ele) => ({
-    data: { name: ele.name,
-      price: Number(ele.price),
-      stock_quantity: ele.stock_quantity,
-      sku: ele.sku
-    },
+    data: { name: ele.name, price: Number(ele.price), stock_quantity: ele.stock_quantity, sku: ele.sku },
     userId: req.user._id,
     id: ele.id,
     licenceNumber: ObjectId(req.query.licenceNumber),
