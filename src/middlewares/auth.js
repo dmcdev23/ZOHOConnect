@@ -28,8 +28,10 @@ const verifyCallback = (req, resolve, reject, requiredRights) => async (err, use
 const auth =
   (...requiredRights) =>
   async (req, res, next) => {
+    console.log("call auth")
     const s2sKey = 'RFqjc7x6lVTv3EereJCCg4KuL6q7zzwS';
     if (req.headers.s2s === s2sKey && !!req.headers.licencenumber) {
+      console.log("req.headers", req.headers)
       const user = await Licence.findOne({ licenceNumber: req.headers.licencenumber }).lean();
       const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
       console.log(user._id.toString(), user);
@@ -37,6 +39,7 @@ const auth =
       req.headers.authorization = `Bearer ${accessToken}`;
     }
     return new Promise((resolve, reject) => {
+      console.log("req.headers Promise", req.headers)
       passport.authenticate('jwt', { session: false }, verifyCallback(req, resolve, reject, requiredRights))(req, res, next);
     })
       .then(() => next())
