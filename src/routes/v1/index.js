@@ -4,6 +4,7 @@ const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
 const zohoRoute = require('./bg_prod.route');
 const wordPressRoute = require('./wordPress.route');
+const ItemSyncRoute = require('./itemSync.routes');
 const config = require('../../config/config');
 
 const router = express.Router();
@@ -24,6 +25,10 @@ const defaultRoutes = [
   {
     path: '/wordPress',
     route: wordPressRoute,
+  },
+  {
+    path: '/itemSync',
+    route: ItemSyncRoute,
   },
 ];
 

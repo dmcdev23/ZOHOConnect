@@ -4,3 +4,4 @@ module.exports.tokenService = require('./token.service');
 module.exports.userService = require('./user.service');
 module.exports.licenceService = require('./zoho.connect.service');
 module.exports.wordPressService = require('./wordPress.service');
+module.exports.ItemSyncService = require('./itemSync.service');
