@@ -1,14 +1,22 @@
 const { ItemSyncSetup } = require('../models');
 
+
+// Get all ItemSyncSetup 
+exports.getItemSyncs = async (req, res) => {
+    const orderSyncs = await ItemSyncSetup.find();
+    return orderSyncs;
+};
+
+// Get a single Item Sync by ID
+exports.getItemSyncById = async (req, res) => {
+    const orderSync = await ItemSyncSetup.findById(req?.params?.id);
+    return orderSync;
+};
+
 // Create new item sync configuration
 exports.createItemSync = async (data) => {
-  console.log("call createItemSync services")
-  try{
   const itemSyncSetup = new ItemSyncSetup(data);
   return await itemSyncSetup.save();
-  }catch(err){
-    console.log("error", err)
-  }
 };
 
 // Update existing item sync configuration

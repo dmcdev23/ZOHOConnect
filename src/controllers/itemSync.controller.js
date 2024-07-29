@@ -1,17 +1,42 @@
 const { validationResult } = require('express-validator');
 const { ItemSyncService } = require('../services');
+const httpStatus = require('http-status');
+
+
+// Get all item sync configuration 
+exports.getItemSyncs = async (req, res) => {
+  try {
+    const itemSyncs = await ItemSyncService.getItemSyncs(req, res);
+    res.status(httpStatus.OK).send(itemSyncs);
+  } catch (err) {
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
+  }
+};
+
+// Get a single item sync configuration by ID
+exports.getItemSyncById = async (req, res) => {
+  try {
+    const orderSync = await ItemSyncService.getItemSyncById(req, res);
+    if (!orderSync) {
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: 'OrderSync not found' });
+    }
+    res.status(httpStatus.OK).send(orderSync);
+  } catch (err) {
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
 
 // Create new item sync configuration
 exports.createItemSync = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(httpStatus.BAD_REQUEST).send({ error: errors});
   }
   try {
     const savedItemSync = await ItemSyncService.createItemSync(req.body);
-    res.status(201).json(savedItemSync);
+    res.status(httpStatus.OK).send(savedItemSync);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
   }
 };
 
@@ -19,17 +44,18 @@ exports.createItemSync = async (req, res) => {
 exports.updateItemSync = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(httpStatus.BAD_REQUEST).send({ error: errors});
   }
 
   try {
     const updatedItemSync = await ItemSyncService.updateItemSync(req.params.id, req.body);
     if (!updatedItemSync) {
-      return res.status(404).json({ error: 'ItemSync not found' });
+     // return res.status(404).json({ error: 'ItemSync not found' });
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: 'ItemSync not found' });
     }
-    res.status(200).json(updatedItemSync);
+    res.status(httpStatus.OK).send(updatedItemSync);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
   }
 };
 
@@ -38,10 +64,10 @@ exports.deleteItemSync = async (req, res) => {
   try {
     const deletedItemSync = await ItemSyncService.deleteItemSync(req.params.id);
     if (!deletedItemSync) {
-      return res.status(404).json({ error: 'ItemSync not found' });
+      return res.status(httpStatus.BAD_REQUEST).send({ error: 'ItemSync not found' });
     }
-    res.status(200).json({ message: 'ItemSync deleted successfully' });
+    res.status(httpStatus.OK).send(deletedItemSync);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
   }
 };
