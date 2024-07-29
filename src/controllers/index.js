@@ -1,3 +1,3 @@
 module.exports.authController = require('./auth.controller');
 module.exports.userController = require('./user.controller');
-module.exports.itemSyncController = require('./itemSync.controller');
+module.exports.ItemSyncController = require('./itemSync.controller');

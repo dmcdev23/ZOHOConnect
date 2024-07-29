@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const { itemSyncService } = require('../services');
+const { ItemSyncService } = require('../services');
 
 // Create new item sync configuration
 exports.createItemSync = async (req, res) => {
@@ -7,9 +7,8 @@ exports.createItemSync = async (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
-
   try {
-    const savedItemSync = await itemSyncService.createItemSync(req.body);
+    const savedItemSync = await ItemSyncService.createItemSync(req.body);
     res.status(201).json(savedItemSync);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -24,7 +23,7 @@ exports.updateItemSync = async (req, res) => {
   }
 
   try {
-    const updatedItemSync = await itemSyncService.updateItemSync(req.params.id, req.body);
+    const updatedItemSync = await ItemSyncService.updateItemSync(req.params.id, req.body);
     if (!updatedItemSync) {
       return res.status(404).json({ error: 'ItemSync not found' });
     }
@@ -37,7 +36,7 @@ exports.updateItemSync = async (req, res) => {
 // Delete item sync configuration
 exports.deleteItemSync = async (req, res) => {
   try {
-    const deletedItemSync = await itemSyncService.deleteItemSync(req.params.id);
+    const deletedItemSync = await ItemSyncService.deleteItemSync(req.params.id);
     if (!deletedItemSync) {
       return res.status(404).json({ error: 'ItemSync not found' });
     }

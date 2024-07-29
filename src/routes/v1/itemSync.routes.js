@@ -1,7 +1,7 @@
 const express = require('express');
 const { check } = require('express-validator');
 const router = express.Router();
-const itemSyncController = require('../../controllers/itemSync.controller');
+const ItemSyncController = require('../../controllers/itemSync.controller');
 
 const validateItemSync = [
   check('syncMethod')
@@ -16,18 +16,18 @@ const validateItemSync = [
   check('itemSyncFinalDestination')
     .isIn(['ZOHO', 'WOOCOMMERCE'])
     .withMessage('itemSyncFinalDestination must be one of ZOHO or WOOCOMMERCE'),
-  check('syncParameters')
-    .isArray()
-    .withMessage('syncParameters must be an array')
-    .custom((value) => {
-      const validParams = ['PARAMETER_1', 'PARAMETER_2', 'PARAMETER_3'];
-      for (let param of value) {
-        if (!validParams.includes(param)) {
-          throw new Error(`Invalid syncParameter: ${param}`);
-        }
-      }
-      return true;
-    }),
+  // check('syncParameters')
+  //   .isArray()
+  //   .withMessage('syncParameters must be an array')
+  //   .custom((value) => {
+  //     const validParams = ['PARAMETER_1', 'PARAMETER_2', 'PARAMETER_3'];
+  //     for (let param of value) {
+  //       if (!validParams.includes(param)) {
+  //         throw new Error(`Invalid syncParameter: ${param}`);
+  //       }
+  //     }
+  //     return true;
+  //   }),
   check('syncFrequency')
     .isObject()
     .withMessage('syncFrequency must be an object')
@@ -55,8 +55,8 @@ const validateItemSync = [
 ];
 
 // Routes for ItemSync
-router.post('/', validateItemSync, itemSyncController.createItemSync);
-router.put('/:id', validateItemSync, itemSyncController.updateItemSync);
-router.delete('/:id', itemSyncController.deleteItemSync);
+router.post('/', validateItemSync, ItemSyncController.createItemSync);
+router.put('/:id', validateItemSync, ItemSyncController.updateItemSync);
+router.delete('/:id', ItemSyncController.deleteItemSync);
 
 module.exports = router;

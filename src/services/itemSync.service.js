@@ -2,8 +2,13 @@ const { ItemSyncSetup } = require('../models');
 
 // Create new item sync configuration
 exports.createItemSync = async (data) => {
-  const itemSyncSetupSetup = new ItemSyncSetupSetup(data);
-  return await ItemSyncSetup.save();
+  console.log("call createItemSync services")
+  try{
+  const itemSyncSetup = new ItemSyncSetup(data);
+  return await itemSyncSetup.save();
+  }catch(err){
+    console.log("error", err)
+  }
 };
 
 // Update existing item sync configuration
