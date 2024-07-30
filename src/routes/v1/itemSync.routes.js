@@ -1,7 +1,7 @@
 const express = require('express');
 const { check } = require('express-validator');
 const router = express.Router();
-const ItemSyncController = require('../../controllers/itemSync.controller');
+const { ItemSyncController } = require('../../controllers');
 
 const validateItemSync = [
   check('syncMethod')
@@ -58,7 +58,7 @@ const validateItemSync = [
 router.post('/', validateItemSync, ItemSyncController.createItemSync);
 router.put('/:id', validateItemSync, ItemSyncController.updateItemSync);
 router.delete('/:id', ItemSyncController.deleteItemSync);
-router.get('/', ItemSyncController.getItemSyncs);
+//router.get('/', ItemSyncController.getItemSyncs);
 router.get('/:id', ItemSyncController.getItemSyncById);
 
 module.exports = router;

@@ -10,10 +10,10 @@ const ItemSyncSetupSchema = mongoose.Schema(
             required: true,
             ref: 'User',
         },
-        licenseNumber: { 
-            type: ObjectId, 
+        licenseNumber: {
+            type: ObjectId,
             required: true,
-             ref: 'licences' 
+            ref: 'licences'
         },
         syncMethod: {
             type: String,
@@ -60,11 +60,6 @@ const ItemSyncSetupSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 ItemSyncSetupSchema.plugin(toJSON);
 ItemSyncSetupSchema.plugin(paginate);
-
-/**
- * @typedef ItemSyncSetupSchema
- */
-//ItemSetupSchema.index({ userId: -1, clientId: -1, licenseNumber: -1 }, { unique: true });
 
 const ItemSyncSetup = mongoose.model('ItemSyncSetup', ItemSyncSetupSchema);
 module.exports = ItemSyncSetup;
