@@ -1,16 +1,19 @@
 const { ItemSyncSetup } = require('../models');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 
 // Get all ItemSyncSetup 
 exports.getItemSyncs = async (req, res) => {
-    const orderSyncs = await ItemSyncSetup.find();
-    return orderSyncs;
+  const orderSyncs = await ItemSyncSetup.find();
+  return orderSyncs;
 };
 
 // Get a single Item Sync by ID
 exports.getItemSyncById = async (req, res) => {
-    const orderSync = await ItemSyncSetup.findById(req?.params?.id);
-    return orderSync;
+  console.log("req?.params?.id", req?.params?.id)
+  const orderSync = await ItemSyncSetup.findOne({ "userId": ObjectId(req?.params?.id )});
+  return orderSync;
 };
 
 // Create new item sync configuration
