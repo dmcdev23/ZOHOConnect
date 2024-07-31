@@ -173,7 +173,7 @@ const syncCustomer = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
       statusText: e.response.statusText,
       data: e.response.data
-    } : e);
+    } : {data: e.message});
   }
 })
 
