@@ -20,12 +20,12 @@ const post = async (data, region = 'in') => {
     throw error;
   }
 };
-const authPost = async (data) => {
+const authPost = async (data, region) => {
   try {
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: zohoAuthBaseURL + data.endpoint,
+      url: zohoBaseURL[region] + data.endpoint,
       headers: { 'Content-Type': 'multipart/form-data;' },
       data: data.data,
     };
@@ -52,12 +52,12 @@ const get = async (user, endPoint) => {
   }
 };
 
-const put = async ({ accessToken, endpoint, data }) => {
+const put = async ({ accessToken, endpoint, data,region }) => {
   try {
     const config = {
       method: 'put',
       maxBodyLength: Infinity,
-      url: zohoBaseURL + endpoint,
+      url: zohoEndPoint[region] + endpoint,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'content-type': 'application/json',
@@ -71,12 +71,12 @@ const put = async ({ accessToken, endpoint, data }) => {
   }
 };
 
-const getDynamic = async ({ accessToken, endpoint, data }) => {
+const getDynamic = async ({ accessToken, endpoint, data },region) => {
   try {
     const config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: zohoBaseURL + endpoint,
+      url: zohoEndPoint[region] + endpoint,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'content-type': 'application/json',

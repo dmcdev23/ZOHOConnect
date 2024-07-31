@@ -25,10 +25,15 @@ try{
   data.append('client_secret', licence.clientSecret);
   data.append('refresh_token', licence.refreshToken);
   data.append('grant_type', 'refresh_token');
-  const res = await API_SERVICE.refreshToken(data);
+  const res = await API_SERVICE.refreshToken(data,licence);
   const now = new Date();
   now.setMinutes(now.getMinutes() + 55);
-  licence = await licenceService.findOneAndUpdate( licence._id, {accessToken: res.access_token, expireAt: now});
+  if(res.access_token){
+    licence = await licenceService.findOneAndUpdate( licence._id, {accessToken: res.access_token, expireAt: now});
+  }else{
+    return res.data;
+  }
+
   return licence._doc;
 }catch (e) {
   throw e;

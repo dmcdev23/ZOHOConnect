@@ -29,7 +29,7 @@ const createOrganizations = catchAsync(async (req, res) => {
       endpoint: '/organizations',
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-    });
+    },req.user.licence[req.query.licenceNumber].licenceNumber);
     res.status(httpStatus.OK).send(data.organizations);
   } catch (e) {
     console.error(e);
@@ -42,6 +42,7 @@ const updateOrganizations = catchAsync(async (req, res) => {
       endpoint: '/organizations',
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
+      region: req.user.licence[req.query.licenceNumber].licenceNumber
     });
     res.status(httpStatus.OK).send(data.organizations);
   } catch (e) {
@@ -56,7 +57,7 @@ const createItem = catchAsync(async (req, res) => {
       endpoint: '/items' + `organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: req.body,
-    });
+    },req.user.licence[req.query.licenceNumber].licenceNumber);
     res.status(httpStatus.OK).send(data);
   } catch (e) {
     console.error(e);
@@ -80,6 +81,7 @@ const updateItems = catchAsync(async (req, res) => {
       endpoint: '/items' + ('' || `${req.query.itemId}`) +`organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
+      region: req.user.licence[req.query.licenceNumber].licenceNumber
     });
     res.status(httpStatus.OK).send(data.item);
   } catch (e) {
@@ -94,7 +96,7 @@ const createSale = catchAsync(async (req, res) => {
       endpoint: '/salesorders'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-    });
+    }, req.user.licence[req.query.licenceNumber].licenceNumber);
     res.status(httpStatus.OK).send(data.salesorder);
   } catch (e) {
     console.error(e);
@@ -108,6 +110,7 @@ const updateSale = catchAsync(async (req, res) => {
       endpoint: `/salesorders/${req.query.salesId}`  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
+      region: req.user.licence[req.query.licenceNumber].licenceNumber
     });
     res.status(httpStatus.OK).send(data.salesorder);
   } catch (e) {
@@ -121,7 +124,7 @@ const getSale = catchAsync(async (req, res) => {
     const { data } = await getDynamic({
       endpoint: '/salesorders' + (req.query.salesId ? `/${req.query.salesId}` : '/')  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
-    });
+    },req.user.licence[req.query.licenceNumber].licenceNumber);
     res.status(httpStatus.OK).send(data.salesorders || data.salesorder);
   } catch (e) {
     console.error(e);
@@ -145,6 +148,7 @@ const updateContact = catchAsync(async (req, res) => {
       endpoint: `/contacts/${req.query.contactId}` +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
+      region: req.user.licence[req.query.licenceNumber].licenceNumber
     });
     res.status(httpStatus.OK).send(data);
   } catch (e) {
@@ -197,7 +201,7 @@ const postCreateItem = async (req) => {
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: req.body,
     }
-    return await post(body);
+    return await post(body,req.user.licence[req.query.licenceNumber].licenceNumber);
   }catch (e) {
     return e
   }
@@ -209,7 +213,7 @@ const postCreateOrder = async (req)=>{
       endpoint: 'salesorders'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-    });
+    },req.user.licence[req.query.licenceNumber].licenceNumber);
     return data;
   } catch (e) {
     console.error(e);
