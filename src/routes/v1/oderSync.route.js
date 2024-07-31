@@ -5,11 +5,11 @@ const { OrderSyncController } = require('../../controllers');
 
 
 
-// Routes for ItemSync
-router.post('/', OrderSyncController.createItemSync);
-router.put('/:id', OrderSyncController.updateItemSync);
-router.delete('/:id', OrderSyncController.deleteItemSync);
+// Routes for OrderSync
+router.post('/', OrderSyncController.createOrderSync);
+router.put('/:id', OrderSyncController.updateOrderSync);
+router.delete('/:id', OrderSyncController.deleteOrderSync);
 //router.get('/', OrderSyncController.getItemSyncs);
-router.get('/:id', OrderSyncController.getItemSyncById);
+router.get('/:id', OrderSyncController.getOrderSyncById);
 
 module.exports = router;
