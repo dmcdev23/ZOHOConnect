@@ -228,6 +228,8 @@ module.exports = {
   syncProduct,
   syncProductToZoho,
   syncOrderToZoho,
+  getProduct,
+  getCustomer
 };
 
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {

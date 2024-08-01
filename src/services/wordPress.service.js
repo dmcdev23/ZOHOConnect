@@ -156,7 +156,7 @@ const createProduct = async (req, data) => {
     id: ele.id,
     licenceNumber: ObjectId(req.query.licenceNumber),
   }));
-  return await wordPressProduct.insertMany(data);
+  return await wordPressProduct.create(data);
 };
 
 const bulkWrite = async (pipeline) => {

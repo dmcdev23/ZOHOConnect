@@ -13,9 +13,9 @@ router.route('/syncProduct').get(auth('user'), validate(wordPressValidaation.syn
 
 router.route('/getOrders').get(auth('user'), validate(wordPressValidaation.getOrders),licenceValidator, wordPressController.getOrders);
 
-router.route('/getProduct').get(auth('user'), validate(wordPressValidaation.getOrders),licenceValidator, wordPressController.getOrders);
+router.route('/getProduct').get(auth('user'), validate(wordPressValidaation.getOrders),licenceValidator, wordPressController.getProduct);
 
-router.route('/getCustomer').get(auth('user'), validate(wordPressValidaation.getOrders),licenceValidator, wordPressController.getOrders);
+router.route('/getCustomer').get(auth('user'), validate(wordPressValidaation.getOrders),licenceValidator, wordPressController.getCustomer);
 
 router
   .route('/syncCustomer')
