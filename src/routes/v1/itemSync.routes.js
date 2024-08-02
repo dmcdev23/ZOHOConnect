@@ -56,7 +56,7 @@ const validateItemSync = [
 
 // Routes for ItemSync
 router.post('/', validateItemSync, ItemSyncController.createItemSync);
-router.put('/:id', validateItemSync, ItemSyncController.updateItemSync);
+//router.put('/:id', validateItemSync, ItemSyncController.updateItemSync);
 router.delete('/:id', ItemSyncController.deleteItemSync);
 //router.get('/', ItemSyncController.getItemSyncs);
 router.get('/:id', ItemSyncController.getItemSyncById);

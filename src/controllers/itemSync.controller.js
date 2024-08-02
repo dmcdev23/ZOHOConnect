@@ -28,10 +28,10 @@ exports.getItemSyncById = async (req, res) => {
 
 // Create new item sync configuration
 exports.createItemSync = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(httpStatus.BAD_REQUEST).send({ error: errors});
-  }
+ // const errors = validationResult(req);
+  // if (!errors.isEmpty()) {
+  //   return res.status(httpStatus.BAD_REQUEST).send({ error: errors});
+  // }
   try {
     const savedItemSync = await ItemSyncService.createItemSync(req.body);
     res.status(httpStatus.OK).send(savedItemSync);
