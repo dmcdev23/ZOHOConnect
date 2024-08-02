@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const { OrderSyncService } = require('../services');
 const httpStatus = require('http-status');
-
+const  CronJobScheduler = require('../utils/scheduler')
 
 // Get all order sync configuration 
 exports.getOrderSyncs = async (req, res) => {
@@ -71,3 +71,12 @@ exports.deleteOrderSync = async (req, res) => {
     res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
   }
 };
+
+exports.syncOrder = async(req, res) =>{
+  try {
+    CronJobScheduler.CreateCronJob('*/5 * * * *')
+    res.status(httpStatus.OK).send("Job scheduled successfully!!");
+  } catch (err) {
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
