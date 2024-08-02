@@ -35,7 +35,12 @@ const ItemSyncSetupSchema = mongoose.Schema(
             enum: ['ZOHO', 'WOOCOMMERCE'],
             required: true
         },
-        syncParameters: {
+        syncParametersFirst: {
+            type: [String],
+            //enum: ['PARAMETER_1', 'PARAMETER_2', 'PARAMETER_3'],
+            required: true
+        },
+        syncParametersSecond: {
             type: [String],
             //enum: ['PARAMETER_1', 'PARAMETER_2', 'PARAMETER_3'],
             required: true

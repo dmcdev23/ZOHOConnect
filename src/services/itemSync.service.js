@@ -11,7 +11,7 @@ exports.getItemSyncs = async (req, res) => {
 
 // Get a single Item Sync by ID
 exports.getItemSyncById = async (req, res) => {
-  const orderSync = await ItemSyncSetup.findOne({ "userId": ObjectId(req?.params?.id) });
+  const orderSync = await ItemSyncSetup.findOne({ "licenseNumber": ObjectId(req?.params?.id) });
   return orderSync;
 };
 
