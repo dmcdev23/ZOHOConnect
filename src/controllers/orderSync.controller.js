@@ -28,10 +28,10 @@ exports.getOrderSyncById = async (req, res) => {
 
 // Create new order sync configuration
 exports.createOrderSync = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(httpStatus.BAD_REQUEST).send({ error: errors });
-  }
+ // const errors = validationResult(req);
+  // if (!errors.isEmpty()) {
+  //   return res.status(httpStatus.BAD_REQUEST).send({ error: errors });
+  // }
   try {
     const savedOrderSync = await OrderSyncService.createOrderSync(req.body);
     res.status(httpStatus.OK).send(savedOrderSync);

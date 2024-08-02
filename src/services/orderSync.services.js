@@ -1,6 +1,7 @@
 const { OrderSyncSetup } = require('../models');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const { licenceService } = require('../services');
 
 // Get all OrderSync 
 exports.OrderSyncs = async (req, res) => {
@@ -10,14 +11,33 @@ exports.OrderSyncs = async (req, res) => {
 
 // Get a single Order Sync by ID
 exports.getOrderSyncById = async (req, res) => {
-  const orderSync = await OrderSyncSetup.findOne({ "userId": ObjectId(req?.params?.id )});
+  const orderSync = await OrderSyncSetup.findOne({ "userId": ObjectId(req?.params?.id) });
   return orderSync;
 };
 
-// Create new oder sync configuration
+// Create or update item sync configuration
 exports.createOrderSync = async (data) => {
-  const orderSync = new OrderSyncSetup(data);
-  return await orderSync.save();
+  let { licenseNumber } = data;
+  if (licenseNumber) {
+    try {
+      const license = await licenceService.findOne({ _id: ObjectId(licenseNumber) });
+      if (license) {
+        return await OrderSyncSetup.findByIdAndUpdate(
+          licenseNumber,
+          data,
+          { new: true, upsert: true }
+        );
+      } else {
+        return "Invalid License Number";
+      }
+    } catch (error) {
+      // Handle potential errors, such as database issues
+      console.error('Error:', error);
+      return "An error occurred while processing the request";
+    }
+  } else {
+    return "License number is required";
+  }
 };
 
 // Update existing order sync configuration
