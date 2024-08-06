@@ -9,7 +9,8 @@ const scheduledJobForSyncItemSchema = new mongoose.Schema({
     required: true,
     ref: 'licences'
   },
-  nextIterationTime: { type: Date, required: true },
+  nextIterationTime: { type: Date, default: null },
+  jobExecutedTime: { type: Date, default: null }, 
   isRun: { type: Boolean, default: false },
   isSuccess: { type: Boolean, default: false },
   isFail: { type: Boolean, default: false },
