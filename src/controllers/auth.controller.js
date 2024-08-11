@@ -197,7 +197,8 @@ const linkZOHO = catchAsync(async (req, res) => {
         break;
       default:
         URL = `https://accounts.zoho.in/oauth/v2/token?code=${req.query.code}&client_id=${licenceNumber.clientId}&client_secret=${licenceNumber.clientSecret}&redirect_uri=https://zoho-connect-ravi-pratap-singhs-projects-df76afa5.vercel.app/bg_prod&grant_type=authorization_code&access_type=offline`;
-    }
+   
+      }
     res.status(httpStatus.OK).send({ URL });
   } catch (e) {
     console.error(e);

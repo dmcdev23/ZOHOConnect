@@ -49,7 +49,7 @@ const linkZOHO = {
     client_id: Joi.string().required(),
     client_secret: Joi.string().required(),
     licenceNumber: Joi.string().required(),
-    dataCenter: Joi.string().required(),
+    dataCenter: Joi.string().required()
   }),
 };
 const createLicence = {
