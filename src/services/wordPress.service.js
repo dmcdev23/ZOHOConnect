@@ -182,7 +182,14 @@ const createProduct = async (req, data) => {
       },
       update: {
         $set: {
-          data: { name: ele.name, price: Number(ele.price), stock_quantity: ele.stock_quantity, sku: ele.sku },
+          data: {
+            name: ele.name,
+            price: Number(ele.price),
+            stock_quantity: ele.stock_quantity,
+            sku: ele.sku,
+            categories: ele.categories,
+            images: ele.images,
+          },
           userId: req.user._id,
           id: ele.id,
           licenceNumber: ObjectId(req.query.licenceNumber),
