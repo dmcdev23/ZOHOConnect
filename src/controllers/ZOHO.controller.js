@@ -29,7 +29,7 @@ const createOrganizations = catchAsync(async (req, res) => {
       endpoint: '/organizations',
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-    },req.user.licence[req.query.licenceNumber].licenceNumber);
+    });
     res.status(httpStatus.OK).send(data.organizations);
   } catch (e) {
     console.error(e);
@@ -42,7 +42,6 @@ const updateOrganizations = catchAsync(async (req, res) => {
       endpoint: '/organizations',
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-      region: req.user.licence[req.query.licenceNumber].licenceNumber
     });
     res.status(httpStatus.OK).send(data.organizations);
   } catch (e) {
@@ -57,7 +56,7 @@ const createItem = catchAsync(async (req, res) => {
       endpoint: '/items' + `organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: req.body,
-    },req.user.licence[req.query.licenceNumber].licenceNumber);
+    });
     res.status(httpStatus.OK).send(data);
   } catch (e) {
     console.error(e);
@@ -81,7 +80,6 @@ const updateItems = catchAsync(async (req, res) => {
       endpoint: '/items' + ('' || `${req.query.itemId}`) +`organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-      region: req.user.licence[req.query.licenceNumber].licenceNumber
     });
     res.status(httpStatus.OK).send(data.item);
   } catch (e) {
@@ -96,7 +94,7 @@ const createSale = catchAsync(async (req, res) => {
       endpoint: '/salesorders'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-    }, req.user.licence[req.query.licenceNumber].licenceNumber);
+    });
     res.status(httpStatus.OK).send(data.salesorder);
   } catch (e) {
     console.error(e);
@@ -110,7 +108,6 @@ const updateSale = catchAsync(async (req, res) => {
       endpoint: `/salesorders/${req.query.salesId}`  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-      region: req.user.licence[req.query.licenceNumber].licenceNumber
     });
     res.status(httpStatus.OK).send(data.salesorder);
   } catch (e) {
@@ -124,7 +121,7 @@ const getSale = catchAsync(async (req, res) => {
     const { data } = await getDynamic({
       endpoint: '/salesorders' + (req.query.salesId ? `/${req.query.salesId}` : '/')  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
-    },req.user.licence[req.query.licenceNumber].licenceNumber);
+    });
     res.status(httpStatus.OK).send(data.salesorders || data.salesorder);
   } catch (e) {
     console.error(e);
@@ -148,7 +145,6 @@ const updateContact = catchAsync(async (req, res) => {
       endpoint: `/contacts/${req.query.contactId}` +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-      region: req.user.licence[req.query.licenceNumber].licenceNumber
     });
     res.status(httpStatus.OK).send(data);
   } catch (e) {
@@ -185,7 +181,7 @@ const getLicence = catchAsync(async (req, res) => {
 const postCreateContact = async (req) => {
   try {
     return await post({
-      endpoint: 'v1/contactpersons'  +`?organization_id=${req.query.organization_id}`,
+      endpoint: 'contactpersons'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: req.body,
     }, req.user.licence[req.query.licenceNumber]);
@@ -197,11 +193,11 @@ const postCreateContact = async (req) => {
 const postCreateItem = async (req) => {
   try {
     const body = {
-      endpoint: 'v1/items' + `?organization_id=${req.query.organization_id}`,
+      endpoint: '/items' + `?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: req.body,
     }
-    return await post(body,req.user.licence[req.query.licenceNumber].licenceNumber);
+    return await post(body);
   }catch (e) {
     return e
   }
@@ -210,10 +206,10 @@ const postCreateItem = async (req) => {
 const postCreateOrder = async (req)=>{
   try {
     const data  = await post({
-      endpoint: 'v1/salesorders'  +`?organization_id=${req.query.organization_id}`,
+      endpoint: 'salesorders'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
-    },req.user.licence[req.query.licenceNumber].licenceNumber);
+    });
     return data;
   } catch (e) {
     console.error(e);
@@ -271,7 +267,8 @@ try{
           "name": element?.data?.name,
           "rate": parseFloat(element?.data?.price),
           "initial_stock": element?.data?.stock_quantity,
-          "sku": element?.data?.sku
+          "sku": element?.data?.sku,
+          "available_stock": element?.data?.stock_quantity
         }
       }catch (e) {
         throw e;
