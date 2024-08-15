@@ -185,7 +185,7 @@ const getLicence = catchAsync(async (req, res) => {
 const postCreateContact = async (req) => {
   try {
     return await post({
-      endpoint: 'contactpersons'  +`?organization_id=${req.query.organization_id}`,
+      endpoint: 'v1/contactpersons'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: req.body,
     }, req.user.licence[req.query.licenceNumber]);
@@ -197,7 +197,7 @@ const postCreateContact = async (req) => {
 const postCreateItem = async (req) => {
   try {
     const body = {
-      endpoint: '/items' + `?organization_id=${req.query.organization_id}`,
+      endpoint: 'v1/items' + `?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: req.body,
     }
@@ -210,7 +210,7 @@ const postCreateItem = async (req) => {
 const postCreateOrder = async (req)=>{
   try {
     const data  = await post({
-      endpoint: 'salesorders'  +`?organization_id=${req.query.organization_id}`,
+      endpoint: 'v1/salesorders'  +`?organization_id=${req.query.organization_id}`,
       accessToken: req.user.licence[req.query.licenceNumber].accessToken,
       data: JSON.stringify(req.body),
     },req.user.licence[req.query.licenceNumber].licenceNumber);

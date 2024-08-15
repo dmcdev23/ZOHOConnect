@@ -35,7 +35,7 @@ const jwtVerify = async (payload, done) => {
     if(user?.licence.length){
       user.licence = user.licence.reduce((acc,curr)=>{
         acc[curr._id] = {...curr,
-          isExpired: !!curr.expireAt && new Date() > new Date(curr.expireAt),
+          isExpired: !curr.expireAt || new Date() > new Date(curr.expireAt),
           isLicenceExpired: new Date() > new Date(curr.licenceExpiry),
         };
         return acc;
