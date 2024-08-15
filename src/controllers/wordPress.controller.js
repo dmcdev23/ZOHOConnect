@@ -283,6 +283,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     }
   }catch (e) {
     console.log(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
     throw e;
   }
 }
