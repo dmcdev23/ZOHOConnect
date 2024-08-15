@@ -190,7 +190,7 @@ const createProduct = async (req, data) => {
       },
     },
   }));
-  return await wordPressProduct.create(data);
+  return await wordPressProduct.bulkWrite(data);
 };
 
 const bulkWrite = async (pipeline) => {
