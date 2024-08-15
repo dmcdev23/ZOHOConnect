@@ -188,6 +188,7 @@ const createProduct = async (req, data) => {
           licenceNumber: ObjectId(req.query.licenceNumber),
         },
       },
+      upsert: true,
     },
   }));
   return await wordPressProduct.bulkWrite(data);
