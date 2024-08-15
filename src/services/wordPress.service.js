@@ -110,7 +110,7 @@ const findCustomer = async (filter, lean = true, project = {}, options = {}) => 
 };
 
 const findProduct = async (filter, lean = true, project = {}, options = {}) => {
-  const data = await wordPressProduct.find(filter, project, options).lean(lean);
+  const data = await wordPressProduct.find(filter, project, options).populate('userId').lean(lean);
   return data;
 };
 
