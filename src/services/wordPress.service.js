@@ -125,36 +125,70 @@ const getProductCount = async (filter) => {
 };
 
 const createOrder = async (req, data) => {
-  data = data.map((ele) => ({
-    data: ele,
-    userId: req.user._id.toString(),
-    id: ele.id,
-    licenceNumber: ObjectId(req.query.licenceNumber),
-  }));
-  return await WordPressModel.create(data);
+  data = data.map((ele) => {
+    return {
+      updateOne: {
+        filter: {
+          userId: ObjectId(req.user._id),
+          id: ele.id,
+        },
+        update: {
+          $set: {
+            data: ele,
+            userId: req.user._id,
+            id: ele.id,
+            licenceNumber: ObjectId(req.query.licenceNumber),
+          },
+        },
+        upsert: true,
+      },
+    };
+  });
+  return await WordPressModel.bulkWrite(data);
 };
 
 const createCustomer = async (req, data) => {
   data = data.map((ele) => ({
-    data: {
-      first_name: ele.first_name,
-      last_name: ele.last_name,
-      billing: ele.billing,
-      shipping: ele.shipping,
+    updateOne: {
+      filter: {
+        userId: ObjectId(req.user._id),
+        id: ele.id,
+      },
+      update: {
+        $set: {
+          data: {
+            first_name: ele.first_name,
+            last_name: ele.last_name,
+            billing: ele.billing,
+            shipping: ele.shipping,
+          },
+          userId: req.user._id,
+          id: ele.id,
+          licenceNumber: ObjectId(req.query.licenceNumber),
+        },
+      },
+      upsert: true,
     },
-    userId: req.user._id.toString(),
-    id: ele.id,
-    licenceNumber: ObjectId(req.query.licenceNumber),
   }));
-  return await wordPressCustomer.create(data);
+  return await wordPressCustomer.bulkWrite(data);
 };
 
 const createProduct = async (req, data) => {
   data = data.map((ele) => ({
-    data: { name: ele.name, price: Number(ele.price), stock_quantity: ele.stock_quantity, sku: ele.sku },
-    userId: req.user._id,
-    id: ele.id,
-    licenceNumber: ObjectId(req.query.licenceNumber),
+    updateOne: {
+      filter: {
+        userId: req.user._id,
+        id: ele.id,
+      },
+      update: {
+        $set: {
+          data: { name: ele.name, price: Number(ele.price), stock_quantity: ele.stock_quantity, sku: ele.sku },
+          userId: req.user._id,
+          id: ele.id,
+          licenceNumber: ObjectId(req.query.licenceNumber),
+        },
+      },
+    },
   }));
   return await wordPressProduct.create(data);
 };
