@@ -15,6 +15,7 @@ const createLicence = catchAsync(async (req, res) => {
 });
 
 const getOrganizations = catchAsync(async (req, res) => {
+  
   try {
     const data = await licenceService.getOrganizations(req.user.licence[req.query.licenceNumber]);
     res.status(httpStatus.OK).send(data?.organizations);

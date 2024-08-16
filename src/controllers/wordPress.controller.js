@@ -39,7 +39,9 @@ const syncOrders = catchAsync(async (req, res) => {
 
 const syncProduct = catchAsync(async (req, res) => {
   try {
+    console.log("syncProduct req",  req.query.licenceNumber )
     const licence = await licenceService.findOne({ _id: ObjectId(req.query.licenceNumber) });
+    console.log("syncProduct licence",  licence )
     const WooCommerce = new WooCommerceRestApi({
       url: licence.storeUrl,
       consumerKey: licence.WPKey,
