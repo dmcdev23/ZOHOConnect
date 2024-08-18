@@ -274,10 +274,10 @@ const postCreateOrder = async (req, res) => {
     console.log("postCreateOrder");
     const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
     const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber) });
-    //console.log("orders", orders)
+    console.log("orders", orders.length)
     if(orders){
       for (const item of orders) {
-      console.log("item",req.query.licenceNumber, item.data.line_items[0].product_id)
+      console.log("item",item.id)
 
       const wordPressProductItem = await wordPressProduct.findOne({licenceNumber:  ObjectId(req.query.licenceNumber), id: item.data.line_items[0].product_id}).lean(true);
      // console.log("wordPressProduct", wordPressProductItem)
@@ -315,8 +315,8 @@ const postCreateOrder = async (req, res) => {
                   "pricebook_id": "",
                    "template_id": "1944648000000000239",
                     "documents": [], 
-                    "shipping_address_id": "1944648000000039384", 
-                    "billing_address_id": "1944648000000039382", 
+                   // "shipping_address_id": "1944648000000039384", 
+                   // "billing_address_id": "1944648000000039382", 
                 //    "zcrm_potential_id": "", 
                    // "zcrm_potential_name": "",
                      "payment_terms": 0, 
