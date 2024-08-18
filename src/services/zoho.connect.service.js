@@ -56,13 +56,14 @@ const getItems = async (req) => {
   }
 };
 
-const getContacts = async (req) => {
+const getContacts = async (req, location, accessToken) => {
   try {
+    console.log("req.user.licence[req.query.licenceNumber].licenceNumber", location, req.query.licenceNumber)
     return await get(
-      req.user.licence[req.query.licenceNumber],
+      accessToken,
       req.query?.itemId
-        ? `${GET_ITEMS(req.user.licence[req.query.licenceNumber].licenceNumber)}/${req.query.itemId}/?organization_id=${req.query.organization_id}`
-        : `${GET_CONTACTS((req.user.licence[req.query.licenceNumber].licenceNumber))}/?organization_id=${req.query.organization_id}`
+        ? `${GET_CONTACTS(location)}/${req.query.itemId}/?organization_id=${req.query.organization_id}`
+        : `${GET_CONTACTS((location))}/?organization_id=${req.query.organization_id}`
     );
   } catch (e) {
     throw e;

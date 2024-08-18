@@ -161,7 +161,8 @@ const updateContact = catchAsync(async (req, res) => {
 
 const getContacts = catchAsync(async (req, res) => {
   try {
-    const data = await licenceService.getContacts(req);
+    const res_token = await licenceService.findOne({_id:new ObjectId(req.query.licenceNumber)});
+    const data = await licenceService.getContacts(req, req.user.licence[req.query.licenceNumber], res_token?.accessToken);
     res.status(httpStatus.OK).send(data);
   } catch (e) {
     console.error(e);
