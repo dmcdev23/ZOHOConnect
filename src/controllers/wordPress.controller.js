@@ -315,14 +315,14 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
       createProducts: ZOHOController.postCreateItem,
       createOrders: ZOHOController.postCreateOrder,
     }
-    const count = await countMap[getWhat]({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false});
+    const count = await countMap[getWhat]({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: { $exists: false } });
     console.log("count", count)
     const limit = 500;
     let responseArray = [];
     let errorArray = []
     for (let i = 1;i< count/limit + 1; i++) {
       let data = await serviceMap[getWhat](
-        { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false},
+        { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: { $exists: false } },
         true,
         {},
         {skip: (i-1) * limit, limit: limit});
