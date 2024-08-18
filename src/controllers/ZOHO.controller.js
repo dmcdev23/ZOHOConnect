@@ -20,7 +20,9 @@ const createLicence = catchAsync(async (req, res) => {
 const getOrganizations = catchAsync(async (req, res) => {
   
   try {
-    const data = await licenceService.getOrganizations(req.user.licence[req.query.licenceNumber]);
+    const res_token = await licenceService.findOne({_id:new ObjectId(req.query.licenceNumber)});
+   // req.user.accessToken = res_token.accessToken; 
+    const data = await licenceService.getOrganizations(req.user.licence[req.query.licenceNumber], res_token?.accessToken);
     res.status(httpStatus.OK).send(data?.organizations);
   } catch (e) {
     console.error(e);

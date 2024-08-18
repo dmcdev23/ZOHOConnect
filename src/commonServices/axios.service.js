@@ -35,14 +35,15 @@ const authPost = async (data, region) => {
     console.log(error);
   }
 };
-const get = async (user, endPoint) => {
+const get = async (accessToken, endPoint) => {
   try {
+    console.log("user.accessToken", accessToken)
     const config = {
       method: 'get',
       maxBodyLength: Infinity,
       url: endPoint,
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     const response = await axios.request(config);

@@ -27,9 +27,9 @@ const getLicenceById = async (id) => {
     throw e;
   }
 };
-const getOrganizations = async (user) => {
+const getOrganizations = async (location, accessToken) => {
   try {
-    return await get(user, GET_ORGNIZATION(user.licenceNumber));
+    return await get(accessToken, GET_ORGNIZATION(location));
   } catch (e) {
     throw e;
   }
