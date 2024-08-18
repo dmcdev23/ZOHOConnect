@@ -161,6 +161,7 @@ const createCustomer = async (req, data) => {
             last_name: ele.last_name,
             billing: ele.billing,
             shipping: ele.shipping,
+            email: ele.email
           },
           userId: req.user._id,
           id: ele.id,
@@ -218,6 +219,7 @@ const bulkWriteOrders = async (pipeline) => {
 };
 
 const getOrerCount = async (filter) => {
+  console.log("getOrerCount filter", filter)
   const [data] = await WordPressModel.aggregate([
     {
       $match: filter,
@@ -311,6 +313,11 @@ const getOrerCount = async (filter) => {
   return data.count;
 };
 
+const getOrderCount = async (filter) => {
+  const data = await WordPressModel.count(filter);
+  return data;
+};
+
 module.exports = {
   findOrder,
   createOrder,
@@ -325,4 +332,5 @@ module.exports = {
   getOrerCount,
   bulkWriteOrders,
   findOrderAggregate,
+  getOrderCount
 };
