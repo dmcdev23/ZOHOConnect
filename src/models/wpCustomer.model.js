@@ -34,7 +34,7 @@ wordPressCustomerSchema.plugin(paginate);
 wordPressCustomerSchema.index({ id: -1 });
 wordPressCustomerSchema.index({ licenceNumber: -1, userId: -1 });
 wordPressCustomerSchema.index({ licenceNumber: -1, isSyncedToZoho: -1 });
-wordPressCustomerSchema.index({ licenceNumber: -1, userId: -1, id: -1 });
+wordPressCustomerSchema.index({ userId: -1, id: -1 });
 
 const wordPressCustomer = mongoose.model('wordPressCustomer', wordPressCustomerSchema);
 module.exports = wordPressCustomer;

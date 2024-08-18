@@ -63,6 +63,12 @@ module.exports = {
     },
     from: envVars.EMAIL_FROM,
   },
-  zohoBaseURL: envVars.ZOHO_ENDPOINT,
+  zohoBaseURL: {
+    in: 'https://accounts.zoho.in/oauth/v2/',
+    us: 'https://accounts.zoho.com/oauth/v2/',
+    eu: 'https://accounts.zoho.eu/oauth/v2/',
+    ca: 'https://accounts.zohocloud.ca/oauth/v2/',
+    au: 'https://accounts.zoho.com.au/oauth/v2/',
+  },
   zohoAuthBaseURL: envVars.ZOHO_AUTH_ENDPOINT,
 };

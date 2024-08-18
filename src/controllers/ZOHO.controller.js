@@ -268,7 +268,8 @@ try{
           "name": element?.data?.name,
           "rate": parseFloat(element?.data?.price),
           "initial_stock": element?.data?.stock_quantity,
-          "sku": element?.data?.sku
+          "sku": element?.data?.sku,
+          "available_stock": element?.data?.stock_quantity
         }
       }catch (e) {
         throw e;

@@ -25,6 +25,11 @@ const licenceSchema = mongoose.Schema(
         now.setMinutes(now.getMinutes() + 55);
         return now;
       },
+      default: () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 55);
+        return new Date(now);
+      },
     },
     clientId: {
       type: String,

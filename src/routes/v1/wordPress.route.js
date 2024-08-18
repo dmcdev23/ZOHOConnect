@@ -7,15 +7,25 @@ const auth = require('../../middlewares/auth');
 const { licenceValidator } = require('../../middlewares/licenceValidator');
 
 const router = express.Router();
-router.route('/syncOrders').get(auth('user'), validate(wordPressValidaation.syncOrders), wordPressController.syncOrders);
+router
+  .route('/syncOrders')
+  .get(auth('user'), validate(wordPressValidaation.syncOrders), licenceValidator, wordPressController.syncOrders);
 
-router.route('/syncProduct').get(auth('user'), validate(wordPressValidaation.syncOrders), wordPressController.syncProduct);
+router
+  .route('/syncProduct')
+  .get(auth('user'), validate(wordPressValidaation.syncOrders), licenceValidator, wordPressController.syncProduct);
 
-router.route('/getOrders').get(auth('user'), validate(wordPressValidaation.getOrders), wordPressController.getOrders);
+router
+  .route('/getOrders')
+  .get(auth('user'), validate(wordPressValidaation.getOrders), licenceValidator, wordPressController.getOrders);
 
-router.route('/getProduct').get(auth('user'), validate(wordPressValidaation.getOrders), wordPressController.getOrders);
+router
+  .route('/getProduct')
+  .get(auth('user'), validate(wordPressValidaation.getOrders), licenceValidator, wordPressController.getProduct);
 
-router.route('/getCustomer').get(auth('user'), validate(wordPressValidaation.getOrders), wordPressController.getOrders);
+router
+  .route('/getCustomer')
+  .get(auth('user'), validate(wordPressValidaation.getOrders), licenceValidator, wordPressController.getCustomer);
 
 router
   .route('/syncCustomer')

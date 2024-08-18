@@ -175,7 +175,7 @@ const syncCustomer = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
       statusText: e.response.statusText,
       data: e.response.data
-    } : e);
+    } : {data: e.message});
   }
 })
 
@@ -230,6 +230,8 @@ module.exports = {
   syncProduct,
   syncProductToZoho,
   syncOrderToZoho,
+  getProduct,
+  getCustomer
 };
 
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
@@ -283,6 +285,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     }
   }catch (e) {
     console.log(e);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
     throw e;
   }
 }
