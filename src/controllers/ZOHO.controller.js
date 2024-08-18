@@ -4,6 +4,9 @@ const { licenceService, wordPressService } = require('../services');
 const { post, put, getDynamic } = require('../commonServices/axios.service');
 const { tr } = require('faker/lib/locales');
 const { WordPressModel, wordPressCustomer } = require('../models');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+
 const createLicence = catchAsync(async (req, res) => {
   try {
     const data = await licenceService.createLicence(req.body);
@@ -193,14 +196,17 @@ const postCreateContact = async (req) => {
 
 const postCreateItem = async (req) => {
   try {
+    console.clear();
+    const res_token= await licenceService.findOne({_id:new ObjectId(req.query.licenceNumber)});
     const body = {
       endpoint: 'items' + `?organization_id=${req.query.organization_id}`,
-      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      accessToken: res_token?.accessToken,
       data: req.body,
     }
+   // console.log("req postCreateItem", body, req.query.licenceNumber)
     return await post(body);
   }catch (e) {
-    return e
+    throw e
   }
 }
 
