@@ -9,7 +9,6 @@ const licenceValidator = async (req, res, next) => {
 try{
 
   const newRefreshToken= await refreshToken(req.user?.licence[req.query.licenceNumber]);
- // console.log("newRefreshToken", newRefreshToken)
   req.user.licence[req.query.licenceNumber] = newRefreshToken?.licenceNumber;
   req.user.licence[req.query.licenceNumber].accessToken = newRefreshToken.accessToken;
 
@@ -29,8 +28,6 @@ try{
 }
 };
 const refreshToken = async (licence)=>{
-  console.log("res.hello ", licence)
-  
 try{
 
   //  const authUrl = 'https://accounts.zoho.in/oauth/v2/token?refresh_token=1000.537a73d127f12c7bc1037c380ac634f2.395a68c6a414bf76303b22eff77ff45f&client_id=`${licence.clientId}`&client_secret=fb50fc6fc382a95d48dd769850f4d5c3e30e5d4dcb&grant_type=refresh_token';

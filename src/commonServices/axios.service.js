@@ -16,7 +16,7 @@ const post = async (data, region = 'in') => {
     };
     return await axios.request(config);
   } catch (error) {
-    console.error(error);
+    console.log("Some thing wen wrong on ZHO API!!")
     throw error;
   }
 };
