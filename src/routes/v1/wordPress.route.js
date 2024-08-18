@@ -1,6 +1,7 @@
 const express = require('express');
 const authController = require('../../controllers/auth.controller');
 const wordPressController = require('../../controllers/wordPress.controller');
+const ZOHOController = require('../../controllers/ZOHO.controller')
 const validate = require('../../middlewares/validate');
 const wordPressValidaation = require('../../validations/wordPress.validation');
 const auth = require('../../middlewares/auth');
@@ -41,7 +42,8 @@ router
 
 router
   .route('/syncOrderToZoho')
-  .get(auth('user'), validate(wordPressValidaation.syncContacts), wordPressController.syncOrderToZoho);
+  .get(auth('user'), validate(wordPressValidaation.syncContacts),   ZOHOController.postCreateOrder);
+  
 
 router
   .route('/linkLicence')

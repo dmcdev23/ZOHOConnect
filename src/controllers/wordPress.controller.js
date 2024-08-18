@@ -212,6 +212,7 @@ const syncProductToZoho = catchAsync(async (req, res) => {
 const syncOrderToZoho = catchAsync(async (req, res) => {
   try {
     if (!req.query.organization_id) res.status(httpStatus.BAD_REQUEST).send({ msg: 'organization_id is required' });
+     //await ZOHOController.postCreateOrder(req);
     await syncToZohoFromGeneric(req, 'createOrders');
     res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
   } catch (e) {
@@ -331,7 +332,7 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
    //   console.log("email: data?.billing?.email", data.billing)
     
       let transformData = await ZOHOController.transformData(req, data, getWhat)
-      //console.log("transformData", transformData);
+      console.log("transformData", transformData);
       for (let j = 0; j < transformData.length; ++j) {
         req.body = transformData[j];
         const response = await ZohoserviceMap[getWhat](req);

@@ -199,7 +199,7 @@ const createProduct = async (req, data) => {
       upsert: true,
     },
   }));
-  console.log("create product", data)
+ // console.log("create product", data)
   return await wordPressProduct.bulkWrite(data);
 };
 

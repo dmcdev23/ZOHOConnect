@@ -58,7 +58,7 @@ const getItems = async (req) => {
 
 const getContacts = async (req, location, accessToken) => {
   try {
-    console.log("req.user.licence[req.query.licenceNumber].licenceNumber", location, req.query.licenceNumber)
+   /// console.log("req.user.licence[req.query.licenceNumber].licenceNumber", location, req.query.licenceNumber)
     return await get(
       accessToken,
       req.query?.itemId

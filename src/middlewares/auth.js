@@ -31,10 +31,10 @@ const auth =
    // console.log("call auth")
     const s2sKey = 'RFqjc7x6lVTv3EereJCCg4KuL6q7zzwS';
     if (req.headers.s2s === s2sKey && !!req.headers.licencenumber) {
-      console.log("req.headers", req.headers)
+     /// console.log("req.headers", req.headers)
       const user = await Licence.findOne({ licenceNumber: req.headers.licencenumber }).lean();
       const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
-      console.log(user._id.toString(), user);
+      ///console.log(user._id.toString(), user);
       const accessToken = generateToken(user.userId, accessTokenExpires, tokenTypes.ACCESS);
       req.headers.authorization = `Bearer ${accessToken}`;
     }
