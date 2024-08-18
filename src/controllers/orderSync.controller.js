@@ -74,7 +74,8 @@ exports.deleteOrderSync = async (req, res) => {
 
 exports.syncOrder = async(req, res) =>{
   try {
-    CronJobScheduler.CreateCronJob('*/5 * * * *')
+    //CronJobScheduler.CreateCronJob('*/5 * * * *')
+    CronJobScheduler.CreateCronJob(req, res);
     res.status(httpStatus.OK).send("Job scheduled successfully!!");
   } catch (err) {
     res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
