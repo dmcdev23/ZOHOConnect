@@ -161,7 +161,8 @@ const updateContact = catchAsync(async (req, res) => {
 
 const getContacts = catchAsync(async (req, res) => {
   try {
-    const data = await licenceService.getContacts(req);
+    const res_token = await licenceService.findOne({_id:new ObjectId(req.query.licenceNumber)});
+    const data = await licenceService.getContacts(req, req.user.licence[req.query.licenceNumber], res_token?.accessToken);
     res.status(httpStatus.OK).send(data);
   } catch (e) {
     console.error(e);
@@ -186,9 +187,10 @@ const getLicence = catchAsync(async (req, res) => {
 
 const postCreateContact = async (req) => {
   try {
+    const res_token= await licenceService.findOne({_id:new ObjectId(req.query.licenceNumber)});
     return await post({
-      endpoint: 'contactpersons'  +`?organization_id=${req.query.organization_id}`,
-      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      endpoint: 'contacts'  +`?organization_id=${req.query.organization_id}`,
+      accessToken: res_token?.accessToken,
       data: req.body,
     }, req.user.licence[req.query.licenceNumber]);
   }catch (e) {
@@ -198,7 +200,6 @@ const postCreateContact = async (req) => {
 
 const postCreateItem = async (req) => {
   try {
-    console.clear();
     const res_token= await licenceService.findOne({_id:new ObjectId(req.query.licenceNumber)});
     const body = {
       endpoint: 'items' + `?organization_id=${req.query.organization_id}`,
@@ -214,12 +215,16 @@ const postCreateItem = async (req) => {
 
 const postCreateOrder = async (req)=>{
   try {
+    console.log("postCreateOrder")
+    const res_token = await licenceService.findOne({_id:new ObjectId(req.query.licenceNumber)});
     const data  = await post({
       endpoint: 'salesorders'  +`?organization_id=${req.query.organization_id}`,
-      accessToken: req.user.licence[req.query.licenceNumber].accessToken,
+      accessToken: res_token?.accessToken,
       data: JSON.stringify(req.body),
     });
-    return data;
+    console.log("postCreateOrder data", data)
+    return;
+   // return await post(data);
   } catch (e) {
     console.error(e);
     return e;

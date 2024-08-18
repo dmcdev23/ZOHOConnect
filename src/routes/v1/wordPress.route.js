@@ -41,7 +41,7 @@ router
 
 router
   .route('/syncOrderToZoho')
-  .get(auth('user'), validate(wordPressValidaation.syncContacts), licenceValidator, wordPressController.syncOrderToZoho);
+  .get(auth('user'), validate(wordPressValidaation.syncContacts), wordPressController.syncOrderToZoho);
 
 router
   .route('/linkLicence')

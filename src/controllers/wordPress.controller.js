@@ -210,7 +210,9 @@ const syncProductToZoho = catchAsync(async (req, res) => {
 
 const syncOrderToZoho = catchAsync(async (req, res) => {
   try {
+    console.log("call order api", req.query)
     if(!req.query.organization_id) res.status(httpStatus.BAD_REQUEST).send({msg: 'organization_id is required'});
+   
     await syncToZohoFromGeneric(req, 'createOrders');
     res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
   } catch (e) {
@@ -315,6 +317,7 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
       createProducts: ZOHOController.postCreateItem,
       createOrders: ZOHOController.postCreateOrder,
     }
+    console.log("befor count call");
     const count = await countMap[getWhat]({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: { $exists: false } });
     console.log("count", count)
     const limit = 500;

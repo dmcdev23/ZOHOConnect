@@ -7,7 +7,7 @@ const axios = require('axios');
 
 const licenceValidator = async (req, res, next) => {
 try{
-
+  console.log("req", req.user, req.query)
   const newRefreshToken= await refreshToken(req.user?.licence[req.query.licenceNumber]);
   req.user.licence[req.query.licenceNumber] = newRefreshToken?.licenceNumber;
   req.user.licence[req.query.licenceNumber].accessToken = newRefreshToken.accessToken;
@@ -22,6 +22,7 @@ try{
   }else if(!req.user?.licence || !req.query.licenceNumber){
     throw 'Licence is required to perform this operation';
   }
+  console.log("pass licenceValidator")
   next();
 }catch (e) {
   res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
