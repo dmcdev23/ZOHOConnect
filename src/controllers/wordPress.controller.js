@@ -39,7 +39,7 @@ const syncOrders = catchAsync(async (req, res) => {
 
 const syncProduct = catchAsync(async (req, res) => {
   try {
-    console.log("syncProduct req",  req.query.licenceNumber )
+    //console.log("syncProduct req",  req.query.licenceNumber )
     const licence = await licenceService.findOne({ _id: ObjectId(req.query.licenceNumber) });
     console.log("syncProduct licence",  licence )
     const WooCommerce = new WooCommerceRestApi({
@@ -58,7 +58,7 @@ const syncProduct = catchAsync(async (req, res) => {
     );
     await fetchFromGeneric(WooCommerce, IdsToExclude, req,'products');
 
-    res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
+    res.status(httpStatus.OK).send({ msg: 'Product sync in progress' });
   } catch (e) {
     console.error(e);
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {

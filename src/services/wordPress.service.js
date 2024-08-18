@@ -192,13 +192,13 @@ const createProduct = async (req, data) => {
           },
           userId: req.user._id,
           id: ele.id,
-          licenceNumber: ObjectId(req.query.licenceNumber),
-          isSyncedToZoho : false
+          licenceNumber: ObjectId(req.query.licenceNumber)
         },
       },
       upsert: true,
     },
   }));
+  console.log("create product", data)
   return await wordPressProduct.bulkWrite(data);
 };
 
