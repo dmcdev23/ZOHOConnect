@@ -196,9 +196,9 @@ const syncCustomerToZoho = catchAsync(async (req, res) => {
 const syncProductToZoho = catchAsync(async (req, res) => {
   try {
     if(!req.query.organization_id) res.status(httpStatus.BAD_REQUEST).send({msg: 'organization_id is required'});
-    let synProductRes = await syncToZohoFromGeneric(req, 'createProducts');
+    await syncToZohoFromGeneric(req, 'createProducts');
     //console.log("synProductRes", synProductRes)
-    res.status(httpStatus.OK).send({ msg: synProductRes });
+    res.status(httpStatus.OK).send({ msg: "Product publish in progress" });
   } catch (e) {
     console.error(e);
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
