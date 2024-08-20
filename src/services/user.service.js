@@ -83,6 +83,22 @@ const deleteUserById = async (userId) => {
   return user;
 };
 
+
+const getLicenseByEmailAndPassword = async (email, password) => {
+  try {
+    let license;
+    console.log("email", email)
+    const user = await User.findOne({ email });
+    if (user) {
+      return license = await Licence.find({ userId: user._id }).lean();
+    } else {
+      throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    }
+  } catch (e) {
+    throw e;
+  }
+};
+
 module.exports = {
   createUser,
   queryUsers,
@@ -90,4 +106,5 @@ module.exports = {
   getUserByEmail,
   updateUserById,
   deleteUserById,
+  getLicenseByEmailAndPassword
 };

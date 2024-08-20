@@ -1,4 +1,4 @@
-const { Licence, User } = require('../models');
+const { Licence } = require('../models');
 const { get } = require('../commonServices/axios.service');
 const logger = require('../utils/logger');
 const { GET_ORGNIZATION, GET_ITEMS, GET_CONTACTS } = require('../utils/endPoints');
@@ -58,7 +58,7 @@ const getItems = async (req) => {
 
 const getContacts = async (req, location, accessToken) => {
   try {
-   /// console.log("req.user.licence[req.query.licenceNumber].licenceNumber", location, req.query.licenceNumber)
+    /// console.log("req.user.licence[req.query.licenceNumber].licenceNumber", location, req.query.licenceNumber)
     return await get(
       accessToken,
       req.query?.itemId
@@ -100,22 +100,14 @@ const aggregate = async (pipeline) => {
 const updateOne = async (filter, set, options = {}) => {
   try {
     return await Licence.updateOne(filter, {
-        $set: set
-      },
+      $set: set
+    },
       options);
   } catch (e) {
     throw e;
   }
 };
 
-
-const getLicenceByUserIdANDPwd = async (userId, password) => {
-  try {
-    return await Licence.findById(id);
-  } catch (e) {
-    throw e;
-  }
-};
 
 module.exports = {
   createLicence,
