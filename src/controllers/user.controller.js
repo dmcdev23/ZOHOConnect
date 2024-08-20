@@ -34,10 +34,20 @@ const deleteUser = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const getLicenseByEmailAndPassword = catchAsync(async (req, res) => {
+  console.log("req.params", req.query)
+  const licenses = await userService.getLicenseByEmailAndPassword(req.query?.email, req.query?.password);
+  if (!licenses) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  res.send(licenses);
+});
+
 module.exports = {
   createUser,
   getUsers,
   getUser,
   updateUser,
   deleteUser,
+  getLicenseByEmailAndPassword
 };
