@@ -212,7 +212,7 @@ const syncProductToZoho = catchAsync(async (req, res) => {
 const syncOrderToZoho = catchAsync(async (req, res) => {
   try {
     if (!req.query.organization_id) res.status(httpStatus.BAD_REQUEST).send({ msg: 'organization_id is required' });
-     //await ZOHOController.postCreateOrder(req);
+    //await ZOHOController.postCreateOrder(req);
     await syncToZohoFromGeneric(req, 'createOrders');
     res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
   } catch (e) {
@@ -224,6 +224,49 @@ const syncOrderToZoho = catchAsync(async (req, res) => {
   }
 })
 
+const fetchOrderByOrderId = async (req, res) => {
+  try {
+    console.log("call fetchOrderByOrderId")
+    const licence = await licenceService.findOne({ _id: ObjectId(req.query.licenceNumber) });
+    if (licence) {
+      console.log("licence?.userId;", licence?.userId)
+      req.user = req.user || {};
+      req.user['_id'] = licence?.userId;
+      console.log("licence", req.user)
+    }
+    else {
+      res.status(httpStatus.OK).send({ msg: 'Invalid License Number' });
+    }
+
+    const WooCommerce = new WooCommerceRestApi({
+      url: licence.storeUrl,
+      consumerKey: licence.WPKey,
+      consumerSecret: licence.WPSecret,
+      version: 'wc/v3'
+    });
+
+    const order = await WooCommerce.get(`orders/${req.query.orderId}`)
+    if (order.data) {
+      console.log("add orders");
+      const createdOrder = await wordPressService.createOrder(req, [order.data]);
+      if (createdOrder) {
+        console.log("createdOrder", createdOrder)
+      }
+      res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
+    }
+    else {
+      res.status(httpStatus.OK).send({ msg: 'Order not found' });
+    }
+
+  } catch (e) {
+    console.error(e);
+    res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
+      statusText: e.response.statusText,
+      data: e.response.data
+    } : e);
+  }
+}
+
 module.exports = {
   syncOrders,
   linkLicence,
@@ -234,7 +277,8 @@ module.exports = {
   syncProductToZoho,
   syncOrderToZoho,
   getProduct,
-  getCustomer
+  getCustomer,
+  fetchOrderByOrderId
 };
 
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
@@ -329,8 +373,8 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
         true,
         {},
         { skip: (i - 1) * limit, limit: limit });
-   //   console.log("email: data?.billing?.email", data.billing)
-    
+      //   console.log("email: data?.billing?.email", data.billing)
+
       let transformData = await ZOHOController.transformData(req, data, getWhat)
       console.log("transformData", transformData);
       for (let j = 0; j < transformData.length; ++j) {
