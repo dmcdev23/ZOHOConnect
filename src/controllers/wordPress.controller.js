@@ -226,16 +226,17 @@ const syncOrderToZoho = catchAsync(async (req, res) => {
 
 const fetchOrderByOrderId = async (req, res) => {
   try {
-    console.log("call fetchOrderByOrderId")
+    if (!req.query.licenceNumber || !req.query.orderId) {
+      return res.status(httpStatus.OK).send({ msg: 'Invalid param pass' });
+    }
+
     const licence = await licenceService.findOne({ _id: ObjectId(req.query.licenceNumber) });
     if (licence) {
-      console.log("licence?.userId;", licence?.userId)
       req.user = req.user || {};
       req.user['_id'] = licence?.userId;
-      console.log("licence", req.user)
     }
     else {
-      res.status(httpStatus.OK).send({ msg: 'Invalid License Number' });
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
     }
 
     const WooCommerce = new WooCommerceRestApi({
@@ -247,10 +248,10 @@ const fetchOrderByOrderId = async (req, res) => {
 
     const order = await WooCommerce.get(`orders/${req.query.orderId}`)
     if (order.data) {
-      console.log("add orders");
+    //  console.log("add orders");
       const createdOrder = await wordPressService.createOrder(req, [order.data]);
       if (createdOrder) {
-        console.log("createdOrder", createdOrder)
+       // console.log("createdOrder", createdOrder)
       }
       res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
     }
