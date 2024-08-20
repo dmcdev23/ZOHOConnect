@@ -51,4 +51,8 @@ router
 
 router.get('/', authController.recieveToken);
 
+router
+  .route('/fetchOrderByOrderId')
+  .get(wordPressController.fetchOrderByOrderId);
+
 module.exports = router;
