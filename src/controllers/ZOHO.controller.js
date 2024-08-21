@@ -287,7 +287,7 @@ const postCreateOrder = async (req, res) => {
           let contact_id = customer.contact_id;
           orderItem = {
             "customer_id": contact_id,
-           // "contact_persons": [contact_id], 
+            "salesorder_number": item.id, 
              "date": item.data.date_created.split('T')[0], 
              "shipment_date": "", 
              "custom_fields": [], 
