@@ -87,9 +87,11 @@ const deleteUserById = async (userId) => {
 const getLicenseByEmailAndPassword = async (email, password) => {
   try {
     let license;
-    console.log("email", email)
     const user = await User.findOne({ email });
-    if (user) {
+    if (!user || !(await user.isPasswordMatch(password))) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid user password');
+    }
+    else if (user) {
       return license = await Licence.find({ userId: user._id }).lean();
     } else {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found');

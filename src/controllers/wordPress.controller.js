@@ -7,7 +7,7 @@ const { response } = require('express');
 const ZOHOController = require('./ZOHO.controller');
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 const ObjectId = mongoose.Types.ObjectId;
-const { wordPressCustomer } = require('../models');
+const { wordPressProduct, WordPressModel } = require('../models');
 
 const syncOrders = catchAsync(async (req, res) => {
   try {
@@ -248,10 +248,22 @@ const fetchOrderByOrderId = async (req, res) => {
 
     const order = await WooCommerce.get(`orders/${req.query.orderId}`)
     if (order.data) {
-    //  console.log("add orders");
+      // console.log("add orders", order.data);
       const createdOrder = await wordPressService.createOrder(req, [order.data]);
-      if (createdOrder) {
-       // console.log("createdOrder", createdOrder)
+      if (createdOrder?.result?.ok === 1 && createdOrder.result.nMatched > 0) {
+        const orderDetails = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: order.data.id } });
+        if (orderDetails) {
+          for (const orderItem of orderDetails.data.line_items) {
+          //  console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
+            const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: orderItem.product_id }).lean(true);
+         //   console.log("wordPressProductItem", wordPressProductItem)
+            if (wordPressProductItem) {
+              if (wordPressProductItem.id === orderItem.product_id) {
+                console.log("wordPressProductItem", wordPressProductItem.data.stock_quantity, orderItem.quantity)
+              }
+            }
+          }
+        }
       }
       res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
     }

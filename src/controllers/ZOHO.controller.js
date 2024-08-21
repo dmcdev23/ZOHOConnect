@@ -271,13 +271,13 @@ const postCreateOrder = async (req, res) => {
   try {
 
     let orderItem;
-    console.log("postCreateOrder");
+   // console.log("postCreateOrder");
     const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
     const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber) });
-    console.log("orders", orders.length)
+  // console.log("orders", orders.length)
     if(orders){
       for (const item of orders) {
-      console.log("item",item.id)
+     // console.log("item",item.id)
 
       const wordPressProductItem = await wordPressProduct.findOne({licenceNumber:  ObjectId(req.query.licenceNumber), id: item.data.line_items[0].product_id}).lean(true);
      // console.log("wordPressProduct", wordPressProductItem)
@@ -294,15 +294,20 @@ const postCreateOrder = async (req, res) => {
              "is_inclusive_tax": false,
               "line_items": [
                { 
-                 "item_order": 1, 
+                 "item_order": 1,//will changes with lineItem index 
                  "item_id": wordPressProductItem?.item_id, 
                  "rate":  item.data.line_items[0].price.toFixed(2), 
                  "name": item.data.line_items[0].name, 
                  "description": 
                  "Test Item", 
                  "quantity":  item.data.line_items[0].quantity,
+                 "quantity_invoiced":  item.data.line_items[0].quantity,
+                 "quantity_packed":  item.data.line_items[0].quantity,
+                 "quantity_shipped":  item.data.line_items[0].quantity,
                  "discount": "0%", 
                  "tax_id": "", 
+                 "tax_name":"IN-TAX-1",
+                 "tax_percentage": 18, //will changes dynamically later 
                  "tags": [], 
                  "item_custom_fields": [], 
                  "unit": "g" }], 
@@ -330,19 +335,11 @@ const postCreateOrder = async (req, res) => {
                 accessToken: res_token?.accessToken,
                 data: JSON.stringify(orderItem), // Use orderItem instead of order
               };
-          
+            //    console.log("data", data)
                await post(data);
-
         }
       }
     }
-
-   
-    
-
-  //  console.log("JSON.stringify(orderItem)", orderItem);
-
-    
     res.status(httpStatus.OK).send({ msg: 'Order  sync in progress' });
 
   } catch (e) {

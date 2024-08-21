@@ -35,7 +35,9 @@ const deleteUser = catchAsync(async (req, res) => {
 });
 
 const getLicenseByEmailAndPassword = catchAsync(async (req, res) => {
-  console.log("req.params", req.query)
+  if(!req.query.email || !req.query.password){
+    return res.status(httpStatus.OK).send({ msg: 'Invalid param pass' });
+  }
   const licenses = await userService.getLicenseByEmailAndPassword(req.query?.email, req.query?.password);
   if (!licenses) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
