@@ -254,12 +254,12 @@ const fetchOrderByOrderId = async (req, res) => {
         const orderDetails = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: order.data.id } });
         if (orderDetails) {
           for (const orderItem of orderDetails.data.line_items) {
-            //  console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
+             console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
             const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: orderItem.product_id }).lean(true);
-            //   console.log("wordPressProductItem", wordPressProductItem)
+              console.log("wordPressProductItem", wordPressProductItem)
             if (wordPressProductItem) {
               if (wordPressProductItem.id === orderItem.product_id) {
-                //console.log("wordPressProductItem",wordPressProductItem.id,  wordPressProductItem.data.stock_quantity, orderItem.quantity)
+              console.log("wordPressProductItem",wordPressProductItem.id,  wordPressProductItem.data.stock_quantity, orderItem.quantity)
                 await wordPressProduct.findByIdAndUpdate(
                   { _id: wordPressProductItem._id }, 
                   {
