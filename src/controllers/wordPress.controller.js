@@ -250,6 +250,7 @@ const fetchOrderByOrderId = async (req, res) => {
     if (order.data) {
       // console.log("add orders", order.data);
       const createdOrder = await wordPressService.createOrder(req, [order.data]);
+      console.log("createdOrder", createdOrder)
       if (createdOrder?.result?.ok === 1 && createdOrder.result.nMatched > 0) {
         const orderDetails = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: order.data.id } });
         if (orderDetails) {
@@ -260,7 +261,7 @@ const fetchOrderByOrderId = async (req, res) => {
             if (wordPressProductItem) {
               if (wordPressProductItem.id === orderItem.product_id) {
               console.log("wordPressProductItem",wordPressProductItem.id,  wordPressProductItem.data.stock_quantity, orderItem.quantity)
-                await wordPressProduct.findByIdAndUpdate(
+               let updatedWordPressProduct =  await wordPressProduct.findByIdAndUpdate(
                   { _id: wordPressProductItem._id }, 
                   {
                     $set: {
@@ -269,12 +270,18 @@ const fetchOrderByOrderId = async (req, res) => {
                   },
                   { new: true }
                 );
+                return res.status(httpStatus.OK).send({ msg: `Updated quantity ${updatedWordPressProduct.data.stock_quantity}` });
+                
               }
             }
+            return  res.status(httpStatus.NOT_FOUND).send({ msg: 'ProductItem not found in Order sync' });
+            
           }
+          return  res.status(httpStatus.NOT_FOUND).send({ msg: 'Requested Order not found in Order sync' });
         }
       }
-      res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
+      return  res.status(httpStatus.NOT_FOUND).send({ msg: 'Some thing went wrong in createdOrder Order sync' });
+     
     }
     else {
       res.status(httpStatus.OK).send({ msg: 'Order not found' });
