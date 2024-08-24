@@ -16,8 +16,8 @@ const post = async (data, region = 'in') => {
     };
     return await axios.request(config);
   } catch (error) {
-    console.log("Some thing wen wrong on ZHO API!!", error);
-    throw error;
+    console.log("Some thing wen wrong on ZHO API!!");
+    return error;
   }
 };
 const authPost = async (data, region) => {
@@ -33,6 +33,7 @@ const authPost = async (data, region) => {
     return response.data;
   } catch (error) {
     console.log(error);
+    return error;
   }
 };
 const get = async (accessToken, endPoint) => {
@@ -50,6 +51,7 @@ const get = async (accessToken, endPoint) => {
     return response.data;
   } catch (error) {
     console.log(error);
+    return error;
   }
 };
 
@@ -68,7 +70,8 @@ const put = async ({ accessToken, endpoint, data,region }) => {
     return await axios.request(config);
   } catch (error) {
     console.error(error);
-    throw error;
+    return error;
+   // throw error;
   }
 };
 
@@ -86,7 +89,8 @@ const getDynamic = async ({ accessToken, endpoint, data },region) => {
     return await axios.request(config);
   } catch (error) {
     console.error(error);
-    throw error;
+    return error;
+   // throw error;
   }
 };
 

@@ -271,13 +271,13 @@ const postCreateOrder = async (req, res) => {
   try {
 
     let orderItem;
-   // console.log("postCreateOrder");
+    // console.log("postCreateOrder");
     const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
-    const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber),  isSyncedToZoho: false });
-  // console.log("orders", orders.length)
-    if(orders){
+    const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
+    // console.log("orders", orders.length)
+    if (orders) {
       for (const item of orders) {
-     // console.log("item",item.id)
+        // console.log("item",item.id)
 
         const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: ObjectId(req.query.licenceNumber), id: item.data.line_items[0].product_id }).lean(true);
         // console.log("wordPressProduct", wordPressProductItem)
@@ -337,17 +337,34 @@ const postCreateOrder = async (req, res) => {
             data: JSON.stringify(orderItem), // Use orderItem instead of order
           };
           //    console.log("data", data)
-          await post(data);
-          await WordPressModel.findOneAndUpdate(
-            {
-              _id: item._id,
-            },
-            {
-              $set: {
-                isSyncedToZoho: true
+          let zohoResponse = await post(data);
+          console.log("response API", zohoResponse.response.data.code );
+          if (zohoResponse.response.data.code == 200) {
+            await WordPressModel.findOneAndUpdate(
+              {
+                _id: item._id,
               },
-            }
-          );
+              {
+                $set: {
+                  isSyncedToZoho: true
+                },
+              }
+            );
+          } else {
+            await WordPressModel.findOneAndUpdate(
+              {
+                _id: item._id,
+              },
+              {
+                $set: {
+                  zohoResponse:{
+                    config: zohoResponse.response.config,
+                    response: zohoResponse.response.data
+                  }
+                },
+              }
+            );
+          }
         }
       }
     }
