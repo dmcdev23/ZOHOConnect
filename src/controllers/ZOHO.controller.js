@@ -273,7 +273,7 @@ const postCreateOrder = async (req, res) => {
     let orderItem;
    // console.log("postCreateOrder");
     const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
-    const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber) });
+    const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber),  isSyncedToZoho: false });
   // console.log("orders", orders.length)
     if(orders){
       for (const item of orders) {
