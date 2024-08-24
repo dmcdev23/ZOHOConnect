@@ -279,64 +279,75 @@ const postCreateOrder = async (req, res) => {
       for (const item of orders) {
      // console.log("item",item.id)
 
-      const wordPressProductItem = await wordPressProduct.findOne({licenceNumber:  ObjectId(req.query.licenceNumber), id: item.data.line_items[0].product_id}).lean(true);
-     // console.log("wordPressProduct", wordPressProductItem)
-        const customer = await wordPressCustomer.findOne({ licenceNumber: ObjectId(req.query.licenceNumber), "data.email": item.data.billing.email  }).lean(true);
+        const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: ObjectId(req.query.licenceNumber), id: item.data.line_items[0].product_id }).lean(true);
+        // console.log("wordPressProduct", wordPressProductItem)
+        const customer = await wordPressCustomer.findOne({ licenceNumber: ObjectId(req.query.licenceNumber), "data.email": item.data.billing.email }).lean(true);
         if (customer) {
           console.log("customer", customer.contact_id);
           let contact_id = customer.contact_id;
           orderItem = {
             "customer_id": contact_id,
-            "salesorder_number": item.id, 
-             "date": item.data.date_created.split('T')[0], 
-             "shipment_date": "", 
-             "custom_fields": [], 
-             "is_inclusive_tax": false,
-              "line_items": [
-               { 
-                 "item_order": 1,//will changes with lineItem index 
-                 "item_id": wordPressProductItem?.item_id, 
-                 "rate":  item.data.line_items[0].price.toFixed(2), 
-                 "name": item.data.line_items[0].name, 
-                 "description": 
-                 "Test Item", 
-                 "quantity":  item.data.line_items[0].quantity,
-                 "quantity_invoiced":  item.data.line_items[0].quantity,
-                 "quantity_packed":  item.data.line_items[0].quantity,
-                 "quantity_shipped":  item.data.line_items[0].quantity,
-                 "discount": "0%", 
-                 "tax_id": "", 
-                 "tax_name":"IN-TAX-1",
-                 "tax_percentage": 18, //will changes dynamically later 
-                 "tags": [], 
-                 "item_custom_fields": [], 
-                 "unit": "g" }], 
-                 "notes": "",
-                  "terms": "", 
-                  "discount": 0, 
-                  "is_discount_before_tax": true, 
-                  "discount_type": "entity_level",
-                  "adjustment_description": "Adjustment", 
-                  "pricebook_id": "",
-                   "template_id": "1944648000000000239",
-                    "documents": [], 
-                   // "shipping_address_id": "1944648000000039384", 
-                   // "billing_address_id": "1944648000000039382", 
-                //    "zcrm_potential_id": "", 
-                   // "zcrm_potential_name": "",
-                     "payment_terms": 0, 
-                     "payment_terms_label": "Due on Receipt", 
-                     "is_adv_tracking_in_package": false, 
-                     "is_tcs_amount_in_percent": true
-              };
-             //  console.log("orderItem", orderItem)
-              const data = {
-                endpoint: 'salesorders' + `?organization_id=${req.query.organization_id}`,
-                accessToken: res_token?.accessToken,
-                data: JSON.stringify(orderItem), // Use orderItem instead of order
-              };
-            //    console.log("data", data)
-               await post(data);
+            "salesorder_number": item.id,
+            "date": item.data.date_created.split('T')[0],
+            "shipment_date": "",
+            "custom_fields": [],
+            "is_inclusive_tax": false,
+            "line_items": [
+              {
+                "item_order": 1,//will changes with lineItem index 
+                "item_id": wordPressProductItem?.item_id,
+                "rate": item.data.line_items[0].price.toFixed(2),
+                "name": item.data.line_items[0].name,
+                "description":
+                  "Test Item",
+                "quantity": item.data.line_items[0].quantity,
+                "quantity_invoiced": item.data.line_items[0].quantity,
+                "quantity_packed": item.data.line_items[0].quantity,
+                "quantity_shipped": item.data.line_items[0].quantity,
+                "discount": "0%",
+                "tax_id": "",
+                "tax_name": "IN-TAX-1",
+                "tax_percentage": 18, //will changes dynamically later 
+                "tags": [],
+                "item_custom_fields": [],
+                "unit": "g"
+              }],
+            "notes": "",
+            "terms": "",
+            "discount": 0,
+            "is_discount_before_tax": true,
+            "discount_type": "entity_level",
+            "adjustment_description": "Adjustment",
+            "pricebook_id": "",
+            "template_id": "1944648000000000239",
+            "documents": [],
+            // "shipping_address_id": "1944648000000039384", 
+            // "billing_address_id": "1944648000000039382", 
+            //    "zcrm_potential_id": "", 
+            // "zcrm_potential_name": "",
+            "payment_terms": 0,
+            "payment_terms_label": "Due on Receipt",
+            "is_adv_tracking_in_package": false,
+            "is_tcs_amount_in_percent": true
+          };
+          //  console.log("orderItem", orderItem)
+          const data = {
+            endpoint: 'salesorders' + `?organization_id=${req.query.organization_id}`,
+            accessToken: res_token?.accessToken,
+            data: JSON.stringify(orderItem), // Use orderItem instead of order
+          };
+          //    console.log("data", data)
+          await post(data);
+          await WordPressModel.findOneAndUpdate(
+            {
+              _id: item._id,
+            },
+            {
+              $set: {
+                isSyncedToZoho: true
+              },
+            }
+          );
         }
       }
     }
