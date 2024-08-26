@@ -7,7 +7,7 @@ const { OrderSyncController } = require('../../controllers');
 
 // Routes for OrderSync
 router.post('/', OrderSyncController.createOrderSync);
-router.post('/synOrder', OrderSyncController.syncOrder);
+router.post('/createCronJobForSyncOrder', OrderSyncController.createCronJobForSyncOrder);
 //router.put('/:id', OrderSyncController.updateOrderSync);
 router.delete('/:id', OrderSyncController.deleteOrderSync);
 //router.get('/', OrderSyncController.getItemSyncs);

@@ -338,7 +338,7 @@ const postCreateOrder = async (req, res) => {
           };
           //    console.log("data", data)
           let zohoResponse = await post(data);
-          console.log("response API", zohoResponse.response.data.code );
+         // console.log("response API", zohoResponse.response.data.code );
           if (zohoResponse.response.data.code == 200) {
             await WordPressModel.findOneAndUpdate(
               {
