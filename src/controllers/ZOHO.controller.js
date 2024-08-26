@@ -287,12 +287,12 @@ const postCreateOrder = async (req, res) => {
           let contact_id = customer.contact_id;
           orderItem = {
             "customer_id": contact_id,
-            "salesorder_number": item.id,
+            "salesorder_number": "SO-" + item.id,
             "date": item.data.date_created.split('T')[0],
             "shipment_date": "",
             "custom_fields": [],
             "is_inclusive_tax": false,
-            "ignore_auto_number_generation" : false,
+           // "ignore_auto_number_generation" : false,
             "line_items": [
               {
                 "item_order": 1,//will changes with lineItem index 
