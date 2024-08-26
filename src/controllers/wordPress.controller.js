@@ -271,12 +271,12 @@ const fetchOrderByOrderId = async (req, res) => {
         const orderDetails = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: order.data.id } });
         if (orderDetails) {
           for (const orderItem of orderDetails.data.line_items) {
-          //  console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
+           // console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
             const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: orderItem.product_id }).lean(true);
-           // console.log("wordPressProductItem", wordPressProductItem)
+          //  console.log("wordPressProductItem", wordPressProductItem)
             if (wordPressProductItem) {
               if (wordPressProductItem.id === orderItem.product_id) {
-            //    console.log("wordPressProductItem", wordPressProductItem.id, wordPressProductItem.data.stock_quantity, orderItem.quantity)
+              //  console.log("wordPressProductItem", wordPressProductItem.id,orderItem.product_id, wordPressProductItem.data.stock_quantity, orderItem.quantity)
                 let updatedWordPressProduct = await wordPressProduct.findByIdAndUpdate(
                   { _id: wordPressProductItem._id },
                   {
@@ -286,15 +286,16 @@ const fetchOrderByOrderId = async (req, res) => {
                   },
                   { new: true }
                 );
-                return res.status(httpStatus.OK).send({ msg: `Updated quantity ${updatedWordPressProduct.data.stock_quantity}` });
-
+               // console.log("updatedWordPressProduct", updatedWordPressProduct)
+               // return res.status(httpStatus.OK).send({ msg: `Updated quantity ${updatedWordPressProduct.data.stock_quantity}` });
               }
             }
-            return res.status(httpStatus.NOT_FOUND).send({ msg: 'ProductItem not found in Order sync' });
+           // return res.status(httpStatus.NOT_FOUND).send({ msg: 'ProductItem not found in Order sync' });
 
           }
-          return res.status(httpStatus.NOT_FOUND).send({ msg: 'Requested Order not found in Order sync' });
+          return res.status(httpStatus.OK).send({ msg: 'Order sync successfully' });
         }
+        return res.status(httpStatus.NOT_FOUND).send({ msg: 'Requested Order not found in Order sync' });
       }
       return res.status(httpStatus.NOT_FOUND).send({ msg: 'Some thing went wrong in createdOrder Order sync' });
 
