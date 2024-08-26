@@ -292,6 +292,7 @@ const postCreateOrder = async (req, res) => {
             "shipment_date": "",
             "custom_fields": [],
             "is_inclusive_tax": false,
+            "ignore_auto_number_generation" : true,
             "line_items": [
               {
                 "item_order": 1,//will changes with lineItem index 
