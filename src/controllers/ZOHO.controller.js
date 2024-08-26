@@ -283,7 +283,7 @@ const postCreateOrder = async (req, res) => {
         // console.log("wordPressProduct", wordPressProductItem)
         const customer = await wordPressCustomer.findOne({ licenceNumber: ObjectId(req.query.licenceNumber), "data.email": item.data.billing.email }).lean(true);
         if (customer) {
-          console.log("customer", customer.contact_id);
+          console.log("customer", customer.contact_id, "SO-" + item.id);
           let contact_id = customer.contact_id;
           orderItem = {
             "customer_id": contact_id,
@@ -332,15 +332,24 @@ const postCreateOrder = async (req, res) => {
             "is_tcs_amount_in_percent": true
           };
           //  console.log("orderItem", orderItem)
-          const data = {
+          const zohoheaders = {
             endpoint: 'salesorders' + `?organization_id=${req.query.organization_id}`,
             accessToken: res_token?.accessToken,
             data: JSON.stringify(orderItem), // Use orderItem instead of order
           };
           //    console.log("data", data)
-          let zohoResponse = await post(data);
+          let zohoResponse = await post(zohoheaders);
          // console.log("response API", zohoResponse.response.data.code );
-          if (zohoResponse.response.data.code == 200) {
+         const { 
+          status, 
+          statusText, 
+          headers, 
+          config, 
+          data 
+        } = zohoResponse;
+
+       //  console.log("data", data)
+          if (data == 200) {
             await WordPressModel.findOneAndUpdate(
               {
                 _id: item._id,
@@ -359,8 +368,8 @@ const postCreateOrder = async (req, res) => {
               {
                 $set: {
                   zohoResponse:{
-                    config: zohoResponse.response.config,
-                    response: zohoResponse.response.data
+                    config: config,
+                    response: data
                   }
                 },
               }
