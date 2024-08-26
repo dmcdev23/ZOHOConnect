@@ -427,18 +427,42 @@ const transformData = async (req, data, transformWhat) => {
       },
       createProducts: (element) => {
         try {
+          // return {
+          //   "group_name": element?.data?.name,
+          //   "unit": "qty",
+          //   "item_type": "sales",
+          //   "product_type": "goods",
+          //   "description": element?.data?.description,
+          //   "name": element?.data?.name,
+          //   "rate": parseFloat(element?.data?.price),
+          //   "initial_stock": element?.data?.stock_quantity,
+          //   "sku": element?.data?.sku,
+          //   "available_stock": element?.data?.stock_quantity,
+          //   "actual_available_stock": element?.data?.stock_quantity,
+          //   "stock_on_hand":element?.data?.stock_quantity
+          // }
           return {
-            "group_name": element?.data?.name,
-            "unit": "qty",
-            "item_type": "sales",
-            "product_type": "goods",
-            "description": "element?.data?.description",
             "name": element?.data?.name,
             "rate": parseFloat(element?.data?.price),
-            "initial_stock": element?.data?.stock_quantity,
-            "sku": element?.data?.sku,
-            "available_stock": element?.data?.stock_quantity
-          }
+            "account_id": "1944648000000000486",
+            "tax_id": "",
+            "tags": [],
+            "custom_fields": [],
+            "purchase_rate": parseFloat(element?.data?.price),
+            "purchase_account_id": "1944648000000000567",
+            "item_type": "inventory",
+            "product_type": "goods",
+            "inventory_account_id": "1944648000000000626",
+            "initial_stock":  element?.data?.stock_quantity,
+            "initial_stock_rate":  element?.data?.stock_quantity,
+            "is_returnable": true,
+            "package_details": {
+                "weight_unit": "kg",
+                "dimension_unit": "cm"
+            },
+            "unit": "qty"
+        }
+          
         } catch (e) {
           throw e;
         }
