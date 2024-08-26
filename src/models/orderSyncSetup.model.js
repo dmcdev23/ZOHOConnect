@@ -14,6 +14,12 @@ const OrderSyncSetupSchema = new mongoose.Schema({
     required: true,
     ref: 'licences'
   },
+  licenseNumber: {
+    type: ObjectId,
+    required: true,
+    ref: 'licences'
+  },
+  organizationId:{ type: String },
   zohoId: {
     type: String,
     //required: true
