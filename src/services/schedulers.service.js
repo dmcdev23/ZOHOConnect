@@ -59,7 +59,7 @@ const postOrderInZoho = async (licenceNumber, organizationId) => {
     // console.log("postCreateOrder");
     const licence = await licenceService.findOne({ _id: licenceNumber });
     // console.log("res_token", res_token);
-    const orders = await wordPressService.findOrder({ licenceNumber: licence._id });
+    const orders = await wordPressService.findOrder({ licenceNumber: licence._id, isSyncedToZoho: false });
     console.log("orders", orders);
     // console.log("orders", orders.length)
     if (orders) {
