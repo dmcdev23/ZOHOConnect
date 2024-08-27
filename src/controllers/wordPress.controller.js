@@ -331,7 +331,7 @@ async function getCustomerFromZoho(licence, createdOrder) {
     if (customer.data.contacts.length < 0) {
      // console.log(createdOrder?.data?.billing);
       const customerZohoPayload = {
-        "contact_name": "Will12243 Smith",
+        "contact_name": createdOrder?.data?.billing?.first_name + createdOrder?.data?.billing?.last_name,
         "company_name": "",
         "contact_type": "customer",
         "currency_id": "1944648000000000064",
@@ -353,11 +353,11 @@ async function getCustomerFromZoho(licence, createdOrder) {
         "contact_persons": [
           {
             "salutation": "Mr",
-            "first_name": "Will1",
-            "last_name": "Smith",
-            "email": "willsmith324@bowmanfurniture.com",
-            "phone": "+1-925-921-9201",
-            "mobile": "+1-4054439562",
+            "first_name": createdOrder?.data?.billing?.first_name,
+            "last_name": createdOrder?.data?.billing?.last_name,
+            "email": createdOrder?.data?.billing?.email,
+            "phone": createdOrder?.data?.billing?.phone,
+            "mobile": createdOrder?.data?.billing?.mobile,
             "is_primary_contact": true
           }
         ],
