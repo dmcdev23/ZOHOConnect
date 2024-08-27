@@ -1,13 +1,14 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { licenceService, wordPressService } = require('../services');
-const { post, put, getDynamic } = require('../commonServices/axios.service');
+const { post, put, getDynamic, get } = require('../commonServices/axios.service');
 const mongoose = require('mongoose');
 const { response } = require('express');
 const ZOHOController = require('./ZOHO.controller');
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 const ObjectId = mongoose.Types.ObjectId;
-const { wordPressProduct, WordPressModel } = require('../models');
+const { wordPressProduct, WordPressModel, wordPressCustomer } = require('../models');
+const axios = require('axios');
 
 const syncOrders = catchAsync(async (req, res) => {
   try {
@@ -266,7 +267,8 @@ const fetchOrderByOrderId = async (req, res) => {
         },
         { upsert: true, new: true }
       );
-     // console.log("createdOrder", createdOrder)
+        const customer =  getCustomerFromZoho(licence, createdOrder);
+      // console.log("reqZohoAPI", reqZohoAPI)
       if (createdOrder) {
         const orderDetails = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: order.data.id } });
         if (orderDetails) {
@@ -312,6 +314,104 @@ const fetchOrderByOrderId = async (req, res) => {
     } : e);
   }
 }
+
+async function getCustomerFromZoho(licence, createdOrder) {
+  try {
+    console.log("call getCustomerFromZoho")
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `https://www.zohoapis.in/inventory/v1/contacts?organization_id=60031237755&email=${createdOrder?.data?.billing?.email}`,
+      headers: { 
+        'Authorization': `Bearer ${licence.accessToken}`
+      }
+    };
+
+    const customer = await axios.request(config);
+    if (customer.data.contacts.length < 0) {
+     // console.log(createdOrder?.data?.billing);
+      const customerZohoPayload = {
+        "contact_name": "Will12243 Smith",
+        "company_name": "",
+        "contact_type": "customer",
+        "currency_id": "1944648000000000064",
+        "payment_terms": 0,
+        "payment_terms_label": "Due on Receipt",
+        "credit_limit": 0,
+        "billing_address":{},
+        "billing_address": {
+          "attention": createdOrder?.data?.billing?.first_name + createdOrder?.data?.billing?.last_name,
+          "address": createdOrder?.data?.billing?.address_1,
+          "street2": createdOrder?.data?.billing?.address_2,
+          "city": createdOrder?.data?.billing?.city,
+          "state": createdOrder?.data?.billing?.state,
+          "zip": createdOrder?.data?.billing?.postcode,
+          "country": createdOrder?.data?.billing?.country
+        },
+        "shipping_address": {},
+        "contact_persons":[],
+        "contact_persons": [
+          {
+            "salutation": "Mr",
+            "first_name": "Will1",
+            "last_name": "Smith",
+            "email": "willsmith324@bowmanfurniture.com",
+            "phone": "+1-925-921-9201",
+            "mobile": "+1-4054439562",
+            "is_primary_contact": true
+          }
+        ],
+        "default_templates": {},
+        "language_code": "en",
+        "tags": [],
+        "customer_sub_type": "business",
+        "documents": [],
+        "msme_type": "",
+        "udyam_reg_no": ""
+      };
+   
+
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `https://www.zohoapis.in/inventory/v1/contacts?organization_id=60031237755`,
+        headers: {
+          Authorization: `Bearer ${licence.accessToken}`,
+          'content-type': 'application/json',
+        },
+        data: JSON.stringify(customerZohoPayload),
+      };
+      
+      const zohoResponse = await axios.request(config);
+      if(zohoResponse.data.code == 0 && zohoResponse.data.message == 'The contact has been added.'){
+       // console.log('addCustomer Axios call response:', zohoResponse.data);
+        return wordPressCustomer.findOneAndUpdate(
+          { contact_id: zohoResponse.data.contact.contact_id, userId: licence?.userId },  // Filter
+          { 
+            $set: {
+              data: {
+                first_name: zohoResponse.data.contact.first_name,
+                last_name: zohoResponse.data.contact.last_name,
+                billing: zohoResponse.data.contact.billing,
+                shipping: zohoResponse.data.contact.shipping,
+                email: zohoResponse.data.contact.email
+              },
+              isSyncedToZoho: true,
+              id: zohoResponse.data.contact.id,
+              licenceNumber:licence._id,
+              userId: licence?.userId,
+            }
+          },
+          { upsert: true, returnDocument: 'after' }  // Options: upsert and return the updated document
+        );
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 
 module.exports = {
   syncOrders,
