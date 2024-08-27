@@ -328,10 +328,11 @@ async function getCustomerFromZoho(licence, createdOrder) {
     };
 
     const customer = await axios.request(config);
-    if (customer.data.contacts.length < 0) {
+    console.log("zohoResponse customer", customer)
+    if (customer.data.contacts.length == 0) {
      // console.log(createdOrder?.data?.billing);
       const customerZohoPayload = {
-        "contact_name": createdOrder?.data?.billing?.first_name + createdOrder?.data?.billing?.last_name,
+        "contact_name": createdOrder?.data?.billing?.first_name + " " + createdOrder?.data?.billing?.last_name,
         "company_name": "",
         "contact_type": "customer",
         "currency_id": "1944648000000000064",
@@ -383,6 +384,7 @@ async function getCustomerFromZoho(licence, createdOrder) {
       };
       
       const zohoResponse = await axios.request(config);
+      console.log("zohoResponse", zohoResponse)
       if(zohoResponse.data.code == 0 && zohoResponse.data.message == 'The contact has been added.'){
        // console.log('addCustomer Axios call response:', zohoResponse.data);
         return wordPressCustomer.findOneAndUpdate(
