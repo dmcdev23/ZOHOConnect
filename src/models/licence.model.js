@@ -40,6 +40,7 @@ const licenceSchema = mongoose.Schema(
       required: true,
     },
     licenceNumber: { type: String },
+    zohoOrganizationId: { type: String},
     licenceExpiry: {
       type: Date,
       set: () => {

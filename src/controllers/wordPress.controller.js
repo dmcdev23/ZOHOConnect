@@ -321,14 +321,14 @@ async function getCustomerFromZoho(licence, createdOrder) {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: `https://www.zohoapis.in/inventory/v1/contacts?organization_id=60031237755&email=${createdOrder?.data?.billing?.email}`,
+      url: `https://www.zohoapis.in/inventory/v1/contacts?organization_id=${licence.zohoOrganizationId}&email=${createdOrder?.data?.billing?.email}`,
       headers: { 
         'Authorization': `Bearer ${licence.accessToken}`
       }
     };
 
     const customer = await axios.request(config);
-    console.log("zohoResponse customer", customer)
+  //  console.log("zohoResponse customer", customer)
     if (customer.data.contacts.length == 0) {
      // console.log(createdOrder?.data?.billing);
       const customerZohoPayload = {
@@ -375,7 +375,7 @@ async function getCustomerFromZoho(licence, createdOrder) {
       const config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `https://www.zohoapis.in/inventory/v1/contacts?organization_id=60031237755`,
+        url: `https://www.zohoapis.in/inventory/v1/contacts?organization_id=${licence.zohoOrganizationId}`,
         headers: {
           Authorization: `Bearer ${licence.accessToken}`,
           'content-type': 'application/json',
