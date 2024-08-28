@@ -22,8 +22,21 @@ const getOrganizations = catchAsync(async (req, res) => {
   try {
     const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
     // req.user.accessToken = res_token.accessToken; 
-    const data = await licenceService.getOrganizations(req.user.licence[req.query.licenceNumber], res_token?.accessToken);
-    res.status(httpStatus.OK).send(data?.organizations);
+    const zohoResponse = await licenceService.getOrganizations(req.user.licence[req.query.licenceNumber], res_token?.accessToken);
+   
+    if(zohoResponse.organizations.length){
+     // console.log("zohoResponse", zohoResponse)
+
+       await licenceService.findOneAndUpdate(
+         ObjectId(req.query.licenceNumber),
+        {
+          $set:{
+            zohoOrganizationId: zohoResponse.organizations[0].organization_id
+          }
+        }
+      )
+    }
+    res.status(httpStatus.OK).send(zohoResponse?.organizations);
   } catch (e) {
     console.error(e);
     res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e?.response?.data || e?.response || e);
@@ -207,7 +220,9 @@ const postCreateItem = async (req) => {
       data: req.body,
     }
     // console.log("req postCreateItem", body, req.query.licenceNumber)
-    return await post(body);
+    const postCreateItem =  await post(body);
+    console.log("postCreateItem", postCreateItem)
+    return postCreateItem;
   } catch (e) {
     throw e
   }
