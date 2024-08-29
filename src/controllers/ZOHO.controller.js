@@ -347,13 +347,13 @@ const postCreateOrder = async (req, res) => {
             "is_tcs_amount_in_percent": true
           };
           //  console.log("orderItem", orderItem)
-          const zohoheaders = {
+          const zohoHeaders = {
             endpoint: 'salesorders' + `?organization_id=${req.query.organization_id}`,
             accessToken: res_token?.accessToken,
             data: JSON.stringify(orderItem), // Use orderItem instead of order
           };
           //    console.log("data", data)
-          let zohoResponse = await post(zohoheaders);
+          let zohoResponse = await post(zohoHeaders);
          // console.log("response API", zohoResponse.response.data.code );
          const { 
           status, 
