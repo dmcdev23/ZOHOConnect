@@ -489,7 +489,7 @@ async function CreateOrderInZoho(licence, order) {
           };
           //    console.log("data", data)
           let zohoResponse = await post(zohoHeaders);
-         // console.log("response API", zohoResponse.response.data.code );
+        
          const { 
           status, 
           statusText, 
@@ -497,7 +497,7 @@ async function CreateOrderInZoho(licence, order) {
           config, 
           data 
         } = zohoResponse;
-
+      //  console.log("response API",data );
        //  console.log("data", data)
           if (data == 200) {
             await WordPressModel.findOneAndUpdate(
