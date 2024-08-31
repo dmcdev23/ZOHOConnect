@@ -1,8 +1,11 @@
 
 const { ScheduledJobForSyncItem, OrderSyncSetup } = require('../models');
-const { WordPressModel, wordPressCustomer, wordPressProduct } = require('../models');
-const { licenceService, wordPressService } = require('../services');
-const { post, put, getDynamic } = require('../commonServices/axios.service');
+const { WordPressModel, wordPressCustomer, wordPressProduct, Licence } = require('../models');
+const { wordPressService } = require('../services');
+const { post, put, getDynamic, get } = require('../commonServices/axios.service');
+const axios = require('axios');
+
+const { refreshToken } = require('../middlewares/licenceValidator')
 
 exports.
   createCronJobForSyncOrder = async (req, res) => {
@@ -49,6 +52,62 @@ exports.
     }
   };
 
+exports.createCronJobForSyncItemInventory = async (req, res) => {
+  try {
+    //console.log("call createCronJobForSyncItemInventory")
+    const licenses = await Licence.find();
+    if (licenses) {
+      for (const license of licenses) {
+        if (license.zohoOrganizationId) {
+          //console.log("license",license )
+          const newRefreshToken = await refreshToken(license);
+         // console.log("newRefreshToken", newRefreshToken)
+          if (newRefreshToken) {
+           // console.log("newRefreshToken", newRefreshToken)
+            let config = {
+              method: 'get',
+              maxBodyLength: Infinity,
+              url: `https://www.zohoapis.in/inventory/v1/items?organization_id=${license.zohoOrganizationId}`,
+              headers: {
+                'Authorization': `Bearer ${newRefreshToken.accessToken}`
+              }
+            };
+           // console.log("config", config);
+            const response = await axios.request(config);
+            // console.log("products", response.data);
+            if (response.data.items.length) {
+              for (const item of response.data.items) {
+                // console.log("item", item)
+                const wordPressProductItem = await wordPressProduct.findOne({ item_id: item.item_id }).lean(true);
+                if (wordPressProductItem) {
+                 // console.log(item.stock_on_hand, wordPressProductItem.data.stock_quantity)
+                  if (item.stock_on_hand != wordPressProductItem.data.stock_quantity) {
+                    // console.log( wordPressProductItem._id, item.stock_on_hand , wordPressProductItem.data.stock_quantity)
+                    await wordPressProduct.findOneAndUpdate(
+                      {
+                        _id: wordPressProductItem._id,
+                      },
+                      {
+                        $set: {
+                          "data.stock_quantity": item.stock_on_hand
+                        },
+                      }
+                    );
+                  }
+                }
+
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  catch (error) {
+    console.error("Error fetching products:", error.response ? error.response.data : error.message);
+
+  }
+}
 
 
 const postOrderInZoho = async (licenceNumber, organizationId) => {

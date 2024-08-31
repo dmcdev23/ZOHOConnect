@@ -83,3 +83,16 @@ exports.createCronJobForSyncOrder = async(req, res) =>{
     res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
   }
 }
+
+
+exports.createCronJobForSyncItemInventory = async(req, res) =>{
+  try {
+    //CronJobScheduler.CreateCronJob('*/5 * * * *')
+    CronJobScheduler.createCronJobForSyncItemInventory(req, res);
+    console.log("createCronJobForSyncItemInventory done")
+    res.status(httpStatus.OK).send({ msg: 'Item  sync in progress' });
+   // res.status(httpStatus.OK).send("Job scheduled successfully!!");
+  } catch (err) {
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
+  }
+}

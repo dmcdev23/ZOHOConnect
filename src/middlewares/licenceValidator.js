@@ -33,7 +33,7 @@ try{
 
   //  const authUrl = 'https://accounts.zoho.in/oauth/v2/token?refresh_token=1000.537a73d127f12c7bc1037c380ac634f2.395a68c6a414bf76303b22eff77ff45f&client_id=`${licence.clientId}`&client_secret=fb50fc6fc382a95d48dd769850f4d5c3e30e5d4dcb&grant_type=refresh_token';
     
-   console.log("licence.licenceNumber", licence.licenceNumber)
+   //console.log("licence.licenceNumber", licence)
    switch (licence.licenceNumber){
     case 'in':
       url = `https://accounts.zoho.in/oauth/v2/token?refresh_token=${licence.refreshToken}&client_id=${licence.clientId}&client_secret=${licence.clientSecret}&grant_type=refresh_token`;
@@ -66,10 +66,11 @@ try{
 
   try {
     let response = await axios(config);
+    //console.log("token response", response)
     // Check if the response is successful
     if (response.status >= 200 && response.status < 300) {
       // Proceed to the next step
-       console.log('Request successful:', response.data.access_token);
+       //console.log('Request successful:', response.data.access_token);
        const now = new Date();
        now.setMinutes(now.getMinutes() + 55);
       licence = await licenceService.findOneAndUpdate( licence._id, {accessToken: response.data.access_token, expireAt: now});
@@ -101,4 +102,4 @@ try{
 }
 }
 
-module.exports = { licenceValidator };
+module.exports = { licenceValidator, refreshToken };
