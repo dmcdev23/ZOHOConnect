@@ -38,7 +38,7 @@ const authPost = async (data, region) => {
 };
 const get = async (accessToken, endPoint) => {
   try {
-    console.log("user.accessToken", accessToken)
+   // console.log("user.accessToken", accessToken)
     const config = {
       method: 'get',
       maxBodyLength: Infinity,

@@ -631,12 +631,12 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
       createProducts: ZOHOController.postCreateItem,
       createOrders: ZOHOController.postCreateOrder,
     }
-    console.log("befor count call", req.query.licenceNumber);
+    //console.log("befor count call", req.query.licenceNumber);
     const count = await countMap[getWhat]({
       licenceNumber: ObjectId(req.query.licenceNumber),
       "isSyncedToZoho": { $in: [false, null] }
     });
-    console.log("count", count)
+    //console.log("count", count)
     const limit = 500;
     let responseArray = [];
     let errorArray = []

@@ -7,3 +7,10 @@ exports.createCronJobForSyncOrder = async (req, res) => {
    await syncService.createCronJobForSyncOrder(req, res);
   //console.log(`Cron job scheduled to run with expression: ${cronExpression}`);
 };
+
+
+exports.createCronJobForSyncItemInventory = async (req, res) => {
+  //cron.schedule(cronExpression, syncService.runSyncJob);
+   await syncService.createCronJobForSyncItemInventory(req, res);
+  //console.log(`Cron job scheduled to run with expression: ${cronExpression}`);
+};
