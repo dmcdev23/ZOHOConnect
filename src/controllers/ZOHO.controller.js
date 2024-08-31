@@ -221,65 +221,12 @@ const postCreateItem = async (req) => {
     }
     // console.log("req postCreateItem", body, req.query.licenceNumber)
     const postCreateItem =  await post(body);
-    console.log("postCreateItem", postCreateItem)
     return postCreateItem;
   } catch (e) {
     throw e
   }
 }
 
-// const postCreateOrder = async (req)=>{
-//   try {
-//     console.log("postCreateOrder")
-//     const res_token = await licenceService.findOne({_id:new ObjectId(req.query.licenceNumber)});
-
-//     let orderItem = {
-
-//       "customer_id": 1944648000000039379,
-//       "salesorder_number": "SO-00003",
-//       "date": "2015-05-28",
-//       "shipment_date": "2015-06-02",
-//       "reference_number": "REF-S-00003",
-//       "line_items": [
-//         {
-//           "item_id": 1944648000000037191,
-//           "name": "Laptop-white/15inch/dell",
-//           "description": "Just a sample description.",
-//           "rate": 122,
-//           "quantity": 2,
-//           "unit": "qty",
-//           "tax_name": "Sales Tax",
-//           "tax_type": "tax",
-//           "tax_percentage": 12,
-//           "item_total": 244,
-
-//         }
-//       ],
-//       "notes": "Sample Note",
-//       "terms": "Terms and Conditions",
-//       "discount": "20.00%",
-//       "is_discount_before_tax": true,
-//       "discount_type": "entity_level",
-//       "shipping_charge": 7,
-//       "delivery_method": "FedEx",
-//       "adjustment": 0,
-//       "adjustment_description": "Just an example description.",
-//       "is_inclusive_tax": false,
-//       "exchange_rate": 1,
-//     }
-//       console.log("JSON.stringify(orderItem)",JSON.stringify(orderItem))
-//     const data  = {
-//       endpoint: 'salesorders'  +`?organization_id=${req.query.organization_id}`,
-//       accessToken: res_token?.accessToken,
-//       data: JSON.stringify(order),
-//     };
-//     console.log("postCreateOrder data", data)
-//    return await post(data);
-//   } catch (e) {
-//     console.error(e);
-//     return e;
-//   }
-// }
 
 
 const postCreateOrder = async (req, res) => {
@@ -371,7 +318,11 @@ const postCreateOrder = async (req, res) => {
               },
               {
                 $set: {
-                  isSyncedToZoho: true
+                  isSyncedToZoho: true,
+                  zohoResponse:{
+                    config: config,
+                    response: data
+                  }
                 },
               }
             );
@@ -442,6 +393,7 @@ const transformData = async (req, data, transformWhat) => {
       },
       createProducts: (element) => {
         try {
+         /// console.log("element", element)
           // return {
           //   "group_name": element?.data?.name,
           //   "unit": "qty",
