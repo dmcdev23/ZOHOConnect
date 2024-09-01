@@ -55,14 +55,23 @@ exports.
 exports.createCronJobForSyncItemInventory = async (req, res) => {
   try {
     console.log("call createCronJobForSyncItemInventory")
-    const licenses = await Licence.find();
+
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+    const licenses = await Licence.find({expireAt: {
+      $gte: startOfDay,
+      $lt: endOfDay
+    }});
+   // console.log("licenses", licenses);
     if (licenses) {
       for (const license of licenses) {
         if (license.zohoOrganizationId) {
           //console.log("license",license )
           const newRefreshToken = await refreshToken(license);
           const orderSyncZoho = await postOrderInZoho(newRefreshToken._id, newRefreshToken.zohoOrganizationId);
-         // console.log("newRefreshToken", newRefreshToken)
+          //console.log("newRefreshToken", newRefreshToken)
           if (newRefreshToken) {
             //console.log("newRefreshToken", newRefreshToken)
             let config = {
@@ -75,7 +84,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
             };
            // console.log("config", config);
             const zohoResponse = await axios.request(config);
-            // console.log("zohoResponse",  zohoResponse.data);
+             console.log("zohoResponse",  zohoResponse.data.message);
             if (zohoResponse.data.items.length) {
               for (const item of zohoResponse.data.items) {
                //  console.log("item", item)
@@ -83,7 +92,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
                 if (wordPressProductItem) {
                  // console.log(item.stock_on_hand, wordPressProductItem.data.stock_quantity)
                   if (item.stock_on_hand != wordPressProductItem.data.stock_quantity) {
-                    // console.log( wordPressProductItem._id, item.stock_on_hand , wordPressProductItem.data.stock_quantity)
+                     console.log( wordPressProductItem._id, item.stock_on_hand , wordPressProductItem.data.stock_quantity)
                     await wordPressProduct.findOneAndUpdate(
                       {
                         _id: wordPressProductItem._id,
