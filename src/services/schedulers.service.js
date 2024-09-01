@@ -81,7 +81,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
         if (license.zohoOrganizationId) {
           console.log("license",license )
           const newRefreshToken = await refreshToken(license);
-          const orderSyncZoho = await postOrderInZoho(newRefreshToken._id, newRefreshToken.zohoOrganizationId);
+        //  const orderSyncZoho = await postOrderInZoho(newRefreshToken._id, newRefreshToken.zohoOrganizationId);
           console.log("newRefreshToken", newRefreshToken)
           if (newRefreshToken) {
             console.log("newRefreshToken", newRefreshToken)
