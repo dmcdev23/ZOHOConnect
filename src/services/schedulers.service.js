@@ -64,6 +64,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
 
     const startOfDayUTC = new Date(startOfDay.toISOString());
     const endOfDayUTC = new Date(endOfDay.toISOString());
+    console.log("startOfDayUTC, endOfDayUTC", startOfDayUTC, endOfDayUTC)
     await saveCurrentIterationForSyncItem("", null, false, false, true, "call  createCronJobForSyncItemInventory", { startOfDayUTC, endOfDayUTC });
 
     const licenses = await Licence.find({
