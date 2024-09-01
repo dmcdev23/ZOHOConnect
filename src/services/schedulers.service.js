@@ -84,7 +84,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
             };
            // console.log("config", config);
             const zohoResponse = await axios.request(config);
-             console.log("zohoResponse",  zohoResponse.data.message);
+             //console.log("zohoResponse",  zohoResponse.data.message);
             if (zohoResponse.data.items.length) {
               for (const item of zohoResponse.data.items) {
                //  console.log("item", item)
@@ -115,6 +115,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
   }
   catch (error) {
     console.error("Error fetching products:", error.response ? error.response.data : error.message);
+    await saveCurrentIterationForSyncItem(license._id, null, false, false, true, error.message, error.response);
 
   }
 }
