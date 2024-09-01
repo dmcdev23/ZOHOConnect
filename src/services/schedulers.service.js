@@ -56,14 +56,23 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
   try {
     console.log("call createCronJobForSyncItemInventory")
 
-    const today = new Date();
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
 
-    const licenses = await Licence.find({expireAt: {
-      $gte: startOfDay,
-      $lt: endOfDay
-    }});
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const startOfDayUTC = new Date(startOfDay.toISOString());
+    const endOfDayUTC = new Date(endOfDay.toISOString());
+    await saveCurrentIterationForSyncItem("", null, false, false, true, "call  createCronJobForSyncItemInventory", { startOfDayUTC, endOfDayUTC });
+
+    const licenses = await Licence.find({
+      expireAt: {
+        $gte: startOfDayUTC
+       // $lt: endOfDayUTC
+      }
+    });
+
    // console.log("licenses",startOfDay, endOfDay, licenses);
    await saveCurrentIterationForSyncItem("", null, false, false, true, "fetch licenses", licenses);
     if (licenses) {
