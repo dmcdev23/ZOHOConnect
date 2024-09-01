@@ -1,7 +1,7 @@
 
 const { ScheduledJobForSyncItem, OrderSyncSetup } = require('../models');
 const { WordPressModel, wordPressCustomer, wordPressProduct, Licence } = require('../models');
-const { wordPressService } = require('../services');
+const { wordPressService, licenceService } = require('../services');
 const { post, put, getDynamic, get } = require('../commonServices/axios.service');
 const axios = require('axios');
 
@@ -61,6 +61,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
         if (license.zohoOrganizationId) {
           //console.log("license",license )
           const newRefreshToken = await refreshToken(license);
+          const orderSyncZoho = await postOrderInZoho(newRefreshToken._id, newRefreshToken.zohoOrganizationId);
          // console.log("newRefreshToken", newRefreshToken)
           if (newRefreshToken) {
            // console.log("newRefreshToken", newRefreshToken)
@@ -113,13 +114,13 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
 const postOrderInZoho = async (licenceNumber, organizationId) => {
   try {
 
-    console.log("licenceNumber, organizationId", licenceNumber, organizationId)
+   // console.log("licenceNumber, organizationId", licenceNumber, organizationId)
     let orderItem;
     // console.log("postCreateOrder");
     const licence = await licenceService.findOne({ _id: licenceNumber });
     // console.log("res_token", res_token);
     const orders = await wordPressService.findOrder({ licenceNumber: licence._id, isSyncedToZoho: false });
-    console.log("orders", orders);
+    //console.log("orders", orders);
     // console.log("orders", orders.length)
     if (orders) {
       for (const item of orders) {
@@ -184,7 +185,7 @@ const postOrderInZoho = async (licenceNumber, organizationId) => {
           };
           //    console.log("data", data)
           let zohoResponse = await post(data);
-          console.log("response API", zohoResponse.response.data.code);
+         // console.log("response API", zohoResponse.response.data.code);
           if (zohoResponse.response.data.code == 200) {
             await WordPressModel.findOneAndUpdate(
               {
