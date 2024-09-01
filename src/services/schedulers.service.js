@@ -74,17 +74,17 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
       }
     });
 
-   // console.log("licenses",startOfDay, endOfDay, licenses);
+    console.log("licenses",startOfDay, endOfDay, licenses);
    await saveCurrentIterationForSyncItem("", null, false, false, true, "fetch licenses", licenses);
     if (licenses) {
       for (const license of licenses) {
         if (license.zohoOrganizationId) {
-          //console.log("license",license )
+          console.log("license",license )
           const newRefreshToken = await refreshToken(license);
           const orderSyncZoho = await postOrderInZoho(newRefreshToken._id, newRefreshToken.zohoOrganizationId);
-          //console.log("newRefreshToken", newRefreshToken)
+          console.log("newRefreshToken", newRefreshToken)
           if (newRefreshToken) {
-            //console.log("newRefreshToken", newRefreshToken)
+            console.log("newRefreshToken", newRefreshToken)
             let config = {
               method: 'get',
               maxBodyLength: Infinity,
@@ -96,10 +96,10 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
            // console.log("config", config);
             const zohoResponse = await axios.request(config);
             await saveCurrentIterationForSyncItem(license._id, null, false, false, true, "fetch item Zoho", zohoResponse.data.message);
-             //console.log("zohoResponse",  zohoResponse.data.message);
+             console.log("zohoResponse",  zohoResponse.data.message);
             if (zohoResponse.data.items.length) {
               for (const item of zohoResponse.data.items) {
-               //  console.log("item", item)
+                console.log("item", item)
                 const wordPressProductItem = await wordPressProduct.findOne({ item_id: item.item_id }).lean(true);
                 if (wordPressProductItem) {
                   await saveCurrentIterationForSyncItem(license._id, null, false, false, true, "fetch item", wordPressProductItem.data);
