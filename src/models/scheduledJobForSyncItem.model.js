@@ -6,7 +6,7 @@ const { ObjectId } = Schema.Types;
 const scheduledJobForSyncItemSchema = new mongoose.Schema({
   licenseNumber: {
     type: ObjectId,
-    required: true,
+    //required: true,
     ref: 'licences'
   },
   nextIterationTime: { type: Date, default: null },

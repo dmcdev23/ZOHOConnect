@@ -61,10 +61,11 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
     const licenses = await Licence.find({expireAt: {
-      $gte: startOfDay,
-      $lt: endOfDay
+      $gte: endOfDay,
+    //  $lt: endOfDay
     }});
-   // console.log("licenses", licenses);
+   // console.log("licenses",startOfDay, endOfDay, licenses);
+   await saveCurrentIterationForSyncItem("", null, false, false, true, "fetch licenses", licenses);
     if (licenses) {
       for (const license of licenses) {
         if (license.zohoOrganizationId) {
@@ -84,12 +85,14 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
             };
            // console.log("config", config);
             const zohoResponse = await axios.request(config);
+            await saveCurrentIterationForSyncItem(license._id, null, false, false, true, "fetch item Zoho", zohoResponse.data.message);
              //console.log("zohoResponse",  zohoResponse.data.message);
             if (zohoResponse.data.items.length) {
               for (const item of zohoResponse.data.items) {
                //  console.log("item", item)
                 const wordPressProductItem = await wordPressProduct.findOne({ item_id: item.item_id }).lean(true);
                 if (wordPressProductItem) {
+                  await saveCurrentIterationForSyncItem(license._id, null, false, false, true, "fetch item", wordPressProductItem.data);
                  // console.log(item.stock_on_hand, wordPressProductItem.data.stock_quantity)
                   if (item.stock_on_hand != wordPressProductItem.data.stock_quantity) {
                      console.log( wordPressProductItem._id, item.stock_on_hand , wordPressProductItem.data.stock_quantity)
@@ -115,7 +118,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
   }
   catch (error) {
     console.error("Error fetching products:", error.response ? error.response.data : error.message);
-    await saveCurrentIterationForSyncItem(license._id, null, false, false, true, error.message, error.response);
+    await saveCurrentIterationForSyncItem("license", null, false, false, true, error.message, error.response);
 
   }
 }
@@ -235,7 +238,7 @@ const postOrderInZoho = async (licenceNumber, organizationId) => {
 
 const saveCurrentIterationForSyncItem = async (licenseNumber, currentIterationTime, isRun, isSuccess, isFail, message, syncItem) => {
   const ScheduledJobSyncItemEntry = new ScheduledJobForSyncItem({
-    licenseNumber,
+    //licenseNumber,
     jobExecutedTime: currentIterationTime,
     isRun,
     isSuccess,
