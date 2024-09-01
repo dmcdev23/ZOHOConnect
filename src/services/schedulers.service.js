@@ -54,7 +54,7 @@ exports.
 
 exports.createCronJobForSyncItemInventory = async (req, res) => {
   try {
-    //console.log("call createCronJobForSyncItemInventory")
+    console.log("call createCronJobForSyncItemInventory")
     const licenses = await Licence.find();
     if (licenses) {
       for (const license of licenses) {
@@ -64,7 +64,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
           const orderSyncZoho = await postOrderInZoho(newRefreshToken._id, newRefreshToken.zohoOrganizationId);
          // console.log("newRefreshToken", newRefreshToken)
           if (newRefreshToken) {
-           // console.log("newRefreshToken", newRefreshToken)
+            //console.log("newRefreshToken", newRefreshToken)
             let config = {
               method: 'get',
               maxBodyLength: Infinity,
@@ -74,11 +74,11 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
               }
             };
            // console.log("config", config);
-            const response = await axios.request(config);
-            // console.log("products", response.data);
-            if (response.data.items.length) {
-              for (const item of response.data.items) {
-                // console.log("item", item)
+            const zohoResponse = await axios.request(config);
+            // console.log("zohoResponse",  zohoResponse.data);
+            if (zohoResponse.data.items.length) {
+              for (const item of zohoResponse.data.items) {
+               //  console.log("item", item)
                 const wordPressProductItem = await wordPressProduct.findOne({ item_id: item.item_id }).lean(true);
                 if (wordPressProductItem) {
                  // console.log(item.stock_on_hand, wordPressProductItem.data.stock_quantity)
@@ -125,7 +125,6 @@ const postOrderInZoho = async (licenceNumber, organizationId) => {
     if (orders) {
       for (const item of orders) {
         // console.log("item",item.id)
-
         const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: item.data.line_items[0].product_id }).lean(true);
         // console.log("wordPressProduct", wordPressProductItem)
         const customer = await wordPressCustomer.findOne({ licenceNumber: licence._id, "data.email": item.data.billing.email }).lean(true);
@@ -185,7 +184,7 @@ const postOrderInZoho = async (licenceNumber, organizationId) => {
           };
           //    console.log("data", data)
           let zohoResponse = await post(data);
-         // console.log("response API", zohoResponse.response.data.code);
+         // console.log("response API", zohoResponse.response);
           if (zohoResponse.response.data.code == 200) {
             await WordPressModel.findOneAndUpdate(
               {
