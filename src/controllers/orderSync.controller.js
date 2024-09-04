@@ -93,27 +93,27 @@ exports.createCronJobForSyncOrder = async (req, res) => {
 
 exports.createCronJobForSyncItemInventory = async (req, res) => {
   try {
-    console.log("call createCronJobForSyncItemInventory")
+    console.log("call createCronJobForSyncItemInventory", req.query.licenceNumber)
 
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    // const startOfDay = new Date();
+    // startOfDay.setHours(0, 0, 0, 0);
 
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    // const endOfDay = new Date();
+    // endOfDay.setHours(23, 59, 59, 999);
 
-    const startOfDayUTC = new Date(startOfDay.toISOString());
-    const endOfDayUTC = new Date(endOfDay.toISOString());
-    console.log("startOfDayUTC, endOfDayUTC", startOfDayUTC, endOfDayUTC)
+    // const startOfDayUTC = new Date(startOfDay.toISOString());
+    // const endOfDayUTC = new Date(endOfDay.toISOString());
+    // console.log("startOfDayUTC, endOfDayUTC", startOfDayUTC, endOfDayUTC)
     //await saveCurrentIterationForSyncItem("", null, false, false, true, "call  createCronJobForSyncItemInventory", { startOfDayUTC, endOfDayUTC });
 
-    const licenses = await Licence.find({ _id: ObjectId("66c2c4ff5fe9961df40ca3bb")
+    const licenses = await Licence.find({ _id: ObjectId(req.query.licenceNumber)
       // expireAt: {
       //   $gte: endOfDayUTC
       // //  $lt: endOfDayUTC
       // }
     });
 
-    console.log("licenses", startOfDay, endOfDay, licenses?._id);
+    console.log("licenses", licenses.length);
     /// await saveCurrentIterationForSyncItem("", null, false, false, true, "fetch licenses", licenses);
     if (licenses) {
       for (const license of licenses) {
