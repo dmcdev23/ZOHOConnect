@@ -191,6 +191,7 @@ const createProduct = async (req, data) => {
             sku: ele.sku,
             categories: ele.categories,
             images: ele.images,
+            wp_data: ele
           },
           userId: req.user._id,
           id: ele.id,

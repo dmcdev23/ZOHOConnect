@@ -95,24 +95,7 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
   try {
     console.log("call createCronJobForSyncItemInventory", req.query.licenceNumber)
 
-    // const startOfDay = new Date();
-    // startOfDay.setHours(0, 0, 0, 0);
-
-    // const endOfDay = new Date();
-    // endOfDay.setHours(23, 59, 59, 999);
-
-    // const startOfDayUTC = new Date(startOfDay.toISOString());
-    // const endOfDayUTC = new Date(endOfDay.toISOString());
-    // console.log("startOfDayUTC, endOfDayUTC", startOfDayUTC, endOfDayUTC)
-    //await saveCurrentIterationForSyncItem("", null, false, false, true, "call  createCronJobForSyncItemInventory", { startOfDayUTC, endOfDayUTC });
-
-    const licenses = await Licence.find({ _id: ObjectId(req.query.licenceNumber)
-      // expireAt: {
-      //   $gte: endOfDayUTC
-      // //  $lt: endOfDayUTC
-      // }
-    });
-
+    const licenses = await Licence.find({ _id: ObjectId(req.query.licenceNumber) });
     console.log("licenses", licenses.length);
     /// await saveCurrentIterationForSyncItem("", null, false, false, true, "fetch licenses", licenses);
     if (licenses) {
@@ -135,23 +118,23 @@ exports.createCronJobForSyncItemInventory = async (req, res) => {
             // console.log("config", config);
             const zohoResponse = await axios.request(config);
             //  await saveCurrentIterationForSyncItem(license._id, null, false, false, true, "fetch item Zoho", zohoResponse.data.message);
-           // console.log("zohoResponse", zohoResponse.data.message);
+            // console.log("zohoResponse", zohoResponse.data.items);
             if (zohoResponse.data.items.length) {
               for (const item of zohoResponse.data.items) {
-               // console.log("item", item)
+                console.log("zohoResponse item", item)
                 const wordPressProductItem = await wordPressProduct.findOne({ item_id: item.item_id }).lean(true);
                 if (wordPressProductItem) {
                   //  await saveCurrentIterationForSyncItem(license._id, null, false, false, true, "fetch item", wordPressProductItem.data);
-                   console.log(item.stock_on_hand, wordPressProductItem.data.stock_quantity)
-                  if (item.stock_on_hand != wordPressProductItem.data.stock_quantity) {
-                    console.log(wordPressProductItem._id, item.stock_on_hand, wordPressProductItem.data.stock_quantity)
+                   console.log(item.available_stock, wordPressProductItem.data.stock_quantity)
+                  if (item.available_stock != wordPressProductItem.data.stock_quantity) {
+                    console.log(wordPressProductItem._id, item.available_stock, wordPressProductItem.data.stock_quantity)
                     await wordPressProduct.findOneAndUpdate(
                       {
                         _id: wordPressProductItem._id,
                       },
                       {
                         $set: {
-                          "data.stock_quantity": item.stock_on_hand
+                          "data.stock_quantity": item.available_stock
                         },
                       }
                     );
