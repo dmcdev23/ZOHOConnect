@@ -274,13 +274,13 @@ const fetchOrderByOrderId = async (req, res) => {
       if (createdOrder) {
         const orderDetails = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: order.data.id } });
         if (orderDetails) {
+          await CreateOrderInZoho(licence, createdOrder);
           for (const orderItem of orderDetails.data.line_items) {
             // console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
             const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: orderItem.product_id }).lean(true);
             //  console.log("wordPressProductItem", wordPressProductItem)
             if (wordPressProductItem) {
-              await CreateOrderInZoho(licence, createdOrder);
-              console.log("call end ZOHOController");
+             // console.log("call end ZOHOController");
               if (wordPressProductItem.id === orderItem.product_id) {
                 //  console.log("wordPressProductItem", wordPressProductItem.id,orderItem.product_id, wordPressProductItem.data.stock_quantity, orderItem.quantity)
                 let updatedWordPressProduct = await wordPressProduct.findByIdAndUpdate(
@@ -388,9 +388,9 @@ async function getCustomerFromZoho(licence, createdOrder) {
       };
 
       const zohoResponse = await axios.request(config);
-      console.log("zohoResponse", zohoResponse)
+     // console.log("zohoResponse", zohoResponse.data)
       if (zohoResponse.data.code == 0 && zohoResponse.data.message == 'The contact has been added.') {
-        // console.log('addCustomer Axios call response:', zohoResponse.data);
+       //  console.log('addCustomer Axios call response:', zohoResponse.data);
         return wordPressCustomer.findOneAndUpdate(
           { contact_id: zohoResponse.data.contact.contact_id, userId: licence?.userId },  // Filter
           {
@@ -417,124 +417,255 @@ async function getCustomerFromZoho(licence, createdOrder) {
   }
 }
 
+
 async function CreateOrderInZoho(licence, order) {
   try {
-    //  console.log("call CreateOrderInZoho", order)
-    let orderItem;
-    // console.log("postCreateOrder");
-    // const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
-    //  const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
-    // console.log("orders", orders.length)
-    if (order) {
-      //  for (const item of createdOrder) {
-      // console.log("item",item.id)
-
-      const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: order.data.line_items[0].product_id }).lean(true);
-      // console.log("wordPressProduct", wordPressProductItem)
-      const customer = await wordPressCustomer.findOne({ licenceNumber: licence._id, "data.email": order.data.billing.email }).lean(true);
-      if (customer) {
-        //console.log("customer", customer.contact_id, "SO-" + item.id);
-        let contact_id = customer.contact_id;
-        orderItem = {
-          "customer_id": contact_id,
-          "salesorder_number": "SO-" + order.id,
-          "date": order.data.date_created.split('T')[0],
-          "shipment_date": "",
-          "custom_fields": [],
-          "is_inclusive_tax": false,
-          // "ignore_auto_number_generation" : false,
-          "line_items": [
-            {
-              "item_order": 1,//will changes with lineItem index 
-              "item_id": wordPressProductItem?.item_id,
-              "rate": order.data.line_items[0].price.toFixed(2),
-              "name": order.data.line_items[0].name,
-              "description":
-                "Test Item",
-              "quantity": order.data.line_items[0].quantity,
-              "quantity_invoiced": order.data.line_items[0].quantity,
-              "quantity_packed": order.data.line_items[0].quantity,
-              "quantity_shipped": order.data.line_items[0].quantity,
-              "discount": "0%",
-              "tax_id": "",
-              "tax_name": "IN-TAX-1",
-              "tax_percentage": 18, //will changes dynamically later 
-              "tags": [],
-              "item_custom_fields": [],
-              "unit": "g"
-            }],
-          "notes": "",
-          "terms": "",
-          "discount": 0,
-          "is_discount_before_tax": true,
-          "discount_type": "entity_level",
-          "adjustment_description": "Adjustment",
-          "pricebook_id": "",
-          "template_id": "1944648000000000239",
-          "documents": [],
-          // "shipping_address_id": "1944648000000039384", 
-          // "billing_address_id": "1944648000000039382", 
-          //    "zcrm_potential_id": "", 
-          // "zcrm_potential_name": "",
-          "payment_terms": 0,
-          "payment_terms_label": "Due on Receipt",
-          "is_adv_tracking_in_package": false,
-          "is_tcs_amount_in_percent": true
-        };
-        //  console.log("orderItem", orderItem)
-        const zohoHeaders = {
-          endpoint: 'salesorders' + `?organization_id=${licence.zohoOrganizationId}`,
-          accessToken: licence?.accessToken,
-          data: JSON.stringify(orderItem), // Use orderItem instead of order
-        };
-        //    console.log("data", data)
-        let zohoResponse = await post(zohoHeaders);
-
-        const {
-          status,
-          statusText,
-          headers,
-          config,
-          data
-        } = zohoResponse;
-        //  console.log("response API",data );
-        //  console.log("data", data)
-        if (data == 200) {
-          await WordPressModel.findOneAndUpdate(
-            {
-              _id: order._id,
-            },
-            {
-              $set: {
-                isSyncedToZoho: true
-              },
-            }
-          );
-        } else {
-          await WordPressModel.findOneAndUpdate(
-            {
-              _id: order._id,
-            },
-            {
-              $set: {
-                zohoResponse: {
-                  config: config,
-                  response: data
-                }
-              },
-            }
-          );
-        }
-      }
+    // Ensure we have the order and line_items array
+    if (!order || !order.data.line_items || order.data.line_items.length === 0) {
+      throw new Error('No line items found in the order');
     }
-    // }
-    // res.status(httpStatus.OK).send({ msg: 'Order  sync in progress' });
+
+    // Fetch Customer Info
+    const customer = await wordPressCustomer.findOne({
+      licenceNumber: licence._id,
+      "data.email": order.data.billing.email
+    }).lean(true);
+
+    if (!customer) {
+      throw new Error('Customer not found');
+    }
+    console.log("customer", customer)
+    const contact_id = customer.contact_id;
+
+    // Prepare an array to hold all line items for Zoho payload
+    const lineItems = await Promise.all(order.data.line_items.map(async (lineItem, index) => {
+      const wordPressProductItem = await wordPressProduct.findOne({
+        licenceNumber: licence._id,
+        id: lineItem.product_id // Fetching product for each line item
+      }).lean(true);
+
+      if (!wordPressProductItem) {
+        throw new Error(`Product not found for product_id: ${lineItem.product_id}`);
+      }
+
+      // Return the formatted line item for the Zoho payload
+      return {
+        item_order: index + 1, // Dynamically set item order based on index
+        item_id: wordPressProductItem.item_id,
+        rate: lineItem.price.toFixed(2),
+        name: lineItem.name,
+        description: wordPressProductItem?.data?.wp_data?.description, 
+        quantity: lineItem.quantity,
+        quantity_invoiced: lineItem.quantity,
+        quantity_packed: lineItem.quantity,
+        quantity_shipped: lineItem.quantity,
+        discount: lineItem.discount_total,
+        tax_id: order.data.tax_lines[0].id, 
+        tax_name: order.data.tax_lines[0].rate_code,
+        tax_percentage: order.data.tax_lines[0].rate_percent,
+        tags: [],
+        item_custom_fields: [],
+        unit: "g" // Modify as needed
+      };
+    }));
+
+    // Create Zoho order payload
+    const orderItem = {
+      customer_id: contact_id,
+      salesorder_number: "SO-" + order.id,
+      date: order.data.date_created.split('T')[0],
+      shipment_date: "",
+      custom_fields: [],
+      is_inclusive_tax: false,
+      line_items: lineItems, // Use the mapped line items array here
+      notes: "",
+      terms: "",
+      discount: 0,
+      is_discount_before_tax: true,
+      discount_type: "entity_level",
+      adjustment_description: "Adjustment",
+      pricebook_id: "",
+      template_id: "1944648000000000239", // Static template id
+      documents: [],
+      payment_terms: 0,
+      payment_terms_label: "Due on Receipt",
+      is_adv_tracking_in_package: false,
+      is_tcs_amount_in_percent: true
+    };
+    
+  //  console.log("orderItem", orderItem);
+    // Zoho API headers
+    const zohoHeaders = {
+      endpoint: 'salesorders' + `?organization_id=${licence.zohoOrganizationId}`,
+      accessToken: licence?.accessToken,
+      data: JSON.stringify(orderItem) // Use the order payload
+    };
+
+    // Post to Zoho
+    const zohoResponse = await post(zohoHeaders);
+   
+    const {
+                status,
+                statusText,
+                headers,
+                config,
+                data
+              } = zohoResponse.response;
+
+     console.log("zohoResponse", data)
+    // Handle Zoho API Response
+    if (data == 200) {
+      await WordPressModel.findOneAndUpdate(
+        { _id: order._id },
+        {
+          $set: {
+            isSyncedToZoho: true,
+            zohoResponse: {
+              config: config,
+              response: data
+            }
+          }
+        }
+      );
+    } else {
+      await WordPressModel.findOneAndUpdate(
+        { _id: order._id },
+        {
+          $set: {
+            zohoResponse: {
+              config: config,
+              response: data
+            }
+          }
+        }
+      );
+    }
 
   } catch (e) {
     console.error(e);
-    return e;
+    //throw e; // Handle error appropriately
   }
-};
+}
+
+
+// async function CreateOrderInZoho(licence, order) {
+//   try {
+//     //  console.log("call CreateOrderInZoho", order)
+//     let orderItem;
+//     // console.log("postCreateOrder");
+//     // const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
+//     //  const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
+//     // console.log("orders", orders.length)
+//     if (order) {
+//       //  for (const item of createdOrder) {
+//       // console.log("item",item.id)
+
+//       const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: order.data.line_items[0].product_id }).lean(true);
+//       // console.log("wordPressProduct", wordPressProductItem)
+//       const customer = await wordPressCustomer.findOne({ licenceNumber: licence._id, "data.email": order.data.billing.email }).lean(true);
+//       if (customer) {
+//         //console.log("customer", customer.contact_id, "SO-" + item.id);
+//         let contact_id = customer.contact_id;
+//         orderItem = {
+//           "customer_id": contact_id,
+//           "salesorder_number": "SO-" + order.id,
+//           "date": order.data.date_created.split('T')[0],
+//           "shipment_date": "",
+//           "custom_fields": [],
+//           "is_inclusive_tax": false,
+//           // "ignore_auto_number_generation" : false,
+//           "line_items": [
+//             {
+//               "item_order": 1,//will changes with lineItem index 
+//               "item_id": wordPressProductItem?.item_id,
+//               "rate": order.data.line_items[0].price.toFixed(2),
+//               "name": order.data.line_items[0].name,
+//               "description":
+//                 "Test Item",
+//               "quantity": order.data.line_items[0].quantity,
+//               "quantity_invoiced": order.data.line_items[0].quantity,
+//               "quantity_packed": order.data.line_items[0].quantity,
+//               "quantity_shipped": order.data.line_items[0].quantity,
+//               "discount": "0%",
+//               "tax_id": "",
+//               "tax_name": "IN-TAX-1",
+//               "tax_percentage": 18, //will changes dynamically later 
+//               "tags": [],
+//               "item_custom_fields": [],
+//               "unit": "g"
+//             }],
+//           "notes": "",
+//           "terms": "",
+//           "discount": 0,
+//           "is_discount_before_tax": true,
+//           "discount_type": "entity_level",
+//           "adjustment_description": "Adjustment",
+//           "pricebook_id": "",
+//           "template_id": "1944648000000000239",
+//           "documents": [],
+//           // "shipping_address_id": "1944648000000039384", 
+//           // "billing_address_id": "1944648000000039382", 
+//           //    "zcrm_potential_id": "", 
+//           // "zcrm_potential_name": "",
+//           "payment_terms": 0,
+//           "payment_terms_label": "Due on Receipt",
+//           "is_adv_tracking_in_package": false,
+//           "is_tcs_amount_in_percent": true
+//         };
+//         //  console.log("orderItem", orderItem)
+//         const zohoHeaders = {
+//           endpoint: 'salesorders' + `?organization_id=${licence.zohoOrganizationId}`,
+//           accessToken: licence?.accessToken,
+//           data: JSON.stringify(orderItem), // Use orderItem instead of order
+//         };
+//         //    console.log("data", data)
+//         let zohoResponse = await post(zohoHeaders);
+
+//         const {
+//           status,
+//           statusText,
+//           headers,
+//           config,
+//           data
+//         } = zohoResponse;
+//         //  console.log("response API",data );
+//         //  console.log("data", data)
+//         if (data == 200) {
+//           await WordPressModel.findOneAndUpdate(
+//             {
+//               _id: order._id,
+//             },
+//             {
+//               $set: {
+//                 isSyncedToZoho: true
+//               },
+//             }
+//           );
+//         } else {
+//           await WordPressModel.findOneAndUpdate(
+//             {
+//               _id: order._id,
+//             },
+//             {
+//               $set: {
+//                 zohoResponse: {
+//                   config: config,
+//                   response: data
+//                 }
+//               },
+//             }
+//           );
+//         }
+//       }
+//     }
+//     // }
+//     // res.status(httpStatus.OK).send({ msg: 'Order  sync in progress' });
+
+//   } catch (e) {
+//     console.error(e);
+//     return e;
+//   }
+// };
 
 
 module.exports = {
