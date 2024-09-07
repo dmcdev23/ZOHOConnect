@@ -277,17 +277,57 @@ const fetchOrderByOrderId = async (req, res) => {
           await CreateOrderInZoho(licence, createdOrder);
           for (const orderItem of orderDetails.data.line_items) {
             // console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
-            const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: orderItem.product_id }).lean(true);
-            //  console.log("wordPressProductItem", wordPressProductItem)
+            const filterProductParama = {syncMethod:'ITEM'}; // enum: ['ITEM', 'SKU', 'BARCODE'],
+            let productFilter = { licenceNumber: licence._id };
+            switch (orderItem.syncMethod) {
+              case 'ITEM':
+                productFilter = { ...productFilter, id: orderItem.product_id }; // Add itemId if syncMethod is 'ITEM'
+                break;
+              case 'SKU':
+                if (orderItem.sku) {
+                  productFilter = { ...productFilter, sku: orderItem.sku }; // Add sku if syncMethod is 'SKU'
+                }
+                break;
+              case 'BARCODE':
+                if (orderItem.barcode) {
+                  productFilter = { ...productFilter, barcode: orderItem.barcode }; // Add barcode if syncMethod is 'BARCODE'
+                }
+                break;
+              default:
+                productFilter = { ...productFilter, id: orderItem.product_id };
+            }
+
+            const wordPressProductItem = await wordPressProduct.findOne(productFilter).lean(true);
+              console.log("wordPressProductItem", wordPressProductItem)
             if (wordPressProductItem) {
-             // console.log("call end ZOHOController");
+              // console.log("call end ZOHOController");
               if (wordPressProductItem.id === orderItem.product_id) {
                 //  console.log("wordPressProductItem", wordPressProductItem.id,orderItem.product_id, wordPressProductItem.data.stock_quantity, orderItem.quantity)
+
+                let updatedStockQuantity = wordPressProductItem.data.stock_quantity;
+
+                switch (orderItem.status) {
+                  case 'completed':
+                    updatedStockQuantity -= orderItem.quantity; // Subtract when order is completed
+                    break;
+                  case 'cancelled':
+                    updatedStockQuantity += orderItem.quantity; // Add back when order is cancelled or refunded
+                    break;
+                  case 'refunded':
+                    updatedStockQuantity += orderItem.quantity; // Add back when order is cancelled or refunded
+                    break;
+                  // You can add additional conditions for other statuses if needed.
+                  default:
+                    // No change in stock for statuses like 'pending', 'processing', etc.
+                    break;
+                }
+
                 let updatedWordPressProduct = await wordPressProduct.findByIdAndUpdate(
                   { _id: wordPressProductItem._id },
                   {
                     $set: {
-                      "data.stock_quantity": wordPressProductItem.data.stock_quantity - orderItem.quantity
+                     // "data.stock_quantity": wordPressProductItem.data.stock_quantity - orderItem.quantity
+                     "data.stock_quantity": updatedStockQuantity
                     }
                   },
                   { new: true }
@@ -388,9 +428,9 @@ async function getCustomerFromZoho(licence, createdOrder) {
       };
 
       const zohoResponse = await axios.request(config);
-     // console.log("zohoResponse", zohoResponse.data)
+      // console.log("zohoResponse", zohoResponse.data)
       if (zohoResponse.data.code == 0 && zohoResponse.data.message == 'The contact has been added.') {
-       //  console.log('addCustomer Axios call response:', zohoResponse.data);
+        //  console.log('addCustomer Axios call response:', zohoResponse.data);
         return wordPressCustomer.findOneAndUpdate(
           { contact_id: zohoResponse.data.contact.contact_id, userId: licence?.userId },  // Filter
           {
@@ -434,9 +474,10 @@ async function CreateOrderInZoho(licence, order) {
     if (!customer) {
       throw new Error('Customer not found');
     }
-    console.log("customer", customer)
+    //console.log("customer", customer)
     const contact_id = customer.contact_id;
-
+    
+    let zohoOrderStatus = "";
     // Prepare an array to hold all line items for Zoho payload
     const lineItems = await Promise.all(order.data.line_items.map(async (lineItem, index) => {
       const wordPressProductItem = await wordPressProduct.findOne({
@@ -447,6 +488,31 @@ async function CreateOrderInZoho(licence, order) {
       if (!wordPressProductItem) {
         throw new Error(`Product not found for product_id: ${lineItem.product_id}`);
       }
+      
+      switch (lineItem.status) {
+        case 'processing':
+          zohoOrderStatus = "fulfilled"
+          break;
+        case 'completed':
+          zohoOrderStatus = "Confirmed"
+          break;
+        case 'cancelled':
+          zohoOrderStatus = "Void"
+          break;
+        case 'refunded':
+          zohoOrderStatus = "Refunded"
+          break;
+        case 'processing':
+          zohoOrderStatus = "Processing"
+          break;
+        case 'on-hold':
+          zohoOrderStatus = "On Hold"
+          break;
+        default:
+          zohoOrderStatus = "Draft"
+          break;
+      }
+
 
       // Return the formatted line item for the Zoho payload
       return {
@@ -454,13 +520,13 @@ async function CreateOrderInZoho(licence, order) {
         item_id: wordPressProductItem.item_id,
         rate: lineItem.price.toFixed(2),
         name: lineItem.name,
-        description: wordPressProductItem?.data?.wp_data?.description, 
+        description: wordPressProductItem?.data?.wp_data?.description,
         quantity: lineItem.quantity,
         quantity_invoiced: lineItem.quantity,
         quantity_packed: lineItem.quantity,
         quantity_shipped: lineItem.quantity,
         discount: lineItem.discount_total,
-        tax_id: order.data.tax_lines[0].id, 
+        tax_id: order.data.tax_lines[0].id,
         tax_name: order.data.tax_lines[0].rate_code,
         tax_percentage: order.data.tax_lines[0].rate_percent,
         tags: [],
@@ -473,6 +539,7 @@ async function CreateOrderInZoho(licence, order) {
     const orderItem = {
       customer_id: contact_id,
       salesorder_number: "SO-" + order.id,
+      status: zohoOrderStatus,
       date: order.data.date_created.split('T')[0],
       shipment_date: "",
       custom_fields: [],
@@ -492,8 +559,8 @@ async function CreateOrderInZoho(licence, order) {
       is_adv_tracking_in_package: false,
       is_tcs_amount_in_percent: true
     };
-    
-  //  console.log("orderItem", orderItem);
+
+    //  console.log("orderItem", orderItem);
     // Zoho API headers
     const zohoHeaders = {
       endpoint: 'salesorders' + `?organization_id=${licence.zohoOrganizationId}`,
@@ -503,16 +570,16 @@ async function CreateOrderInZoho(licence, order) {
 
     // Post to Zoho
     const zohoResponse = await post(zohoHeaders);
-   
-    const {
-                status,
-                statusText,
-                headers,
-                config,
-                data
-              } = zohoResponse.response;
 
-     console.log("zohoResponse", data)
+    const {
+      status,
+      statusText,
+      headers,
+      config,
+      data
+    } = zohoResponse.response;
+
+    console.log("zohoResponse", data)
     // Handle Zoho API Response
     if (data == 200) {
       await WordPressModel.findOneAndUpdate(
@@ -773,18 +840,18 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
     let errorArray = []
     for (let i = 1; i < count / limit + 1; i++) {
       let syncData = await serviceMap[getWhat](
-        { licenceNumber: ObjectId(req.query.licenceNumber),  isSyncedToZoho: { '$in': [ false, null ] } },
+        { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: { '$in': [false, null] } },
         true,
         {},
         { skip: (i - 1) * limit, limit: limit });
-    //  console.log("syncData", syncData)
+      //  console.log("syncData", syncData)
 
       let transformData = await ZOHOController.transformData(req, syncData, getWhat)
-     // console.log("transformData", transformData);
+      // console.log("transformData", transformData);
       for (let j = 0; j < transformData.length; ++j) {
         req.body = transformData[j];
         const response = await ZohoserviceMap[getWhat](req);
-      //  console.log("syncData", syncItem, response.response)
+        //  console.log("syncData", syncItem, response.response)
         if (response && response.status >= 200 && response.status < 300) {
           let UpdateObject = {
             updateOne:
@@ -821,24 +888,24 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
           )
         } else {
           //errorArray.push(response);
-        //  console.log("getWhat",getWhat)
-          if( getWhat == "createProducts"){
+          //  console.log("getWhat",getWhat)
+          if (getWhat == "createProducts") {
             const productId = syncData._id;
-            const {  
-              status, 
-          statusText, 
-          headers, 
-          config, 
-          data 
+            const {
+              status,
+              statusText,
+              headers,
+              config,
+              data
             } = response.response;
-           // console.log("data._id", syncItem, data)
-          const updateItem =   await wordPressProduct.findOneAndUpdate(
+            // console.log("data._id", syncItem, data)
+            const updateItem = await wordPressProduct.findOneAndUpdate(
               {
-                _id:  syncData[j]._id,
+                _id: syncData[j]._id,
               },
               {
                 $set: {
-                  zohoResponse:{
+                  zohoResponse: {
                     config: config,
                     response: data
                   }
@@ -851,10 +918,10 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
         console.log(responseArray);
       }
     }
-    if(responseArray){
-       await serviceMap[`bulkWrite${getWhat}`](responseArray);
+    if (responseArray) {
+      await serviceMap[`bulkWrite${getWhat}`](responseArray);
     }
-   
+
   } catch (e) {
     console.log(e);
     throw e;
