@@ -241,7 +241,7 @@ const fetchOrderByOrderId = async (req, res) => {
     else {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
     }
-    console.log("req.query", req.query)
+    //console.log("req.query", req.query)
     const WooCommerce = new WooCommerceRestApi({
       url: licence.storeUrl,
       consumerKey: licence.WPKey,
@@ -269,76 +269,90 @@ const fetchOrderByOrderId = async (req, res) => {
         { upsert: true, new: true }
       );
 
-      await getCustomerFromZoho(licence, createdOrder);
+      const customer = await wordPressCustomer.findOne({
+        licenceNumber: licence._id,
+        "data.email": createdOrder.data.billing.email
+      }).lean(true);
+
+      //console.log("customer", customer);
+
+      if (!customer) {
+        await getCustomerFromZoho(licence, createdOrder);
+      }
+
       // console.log("reqZohoAPI", reqZohoAPI)
       if (createdOrder) {
-        const orderDetails = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: order.data.id } });
-        if (orderDetails) {
-          await CreateOrderInZoho(licence, createdOrder);
-          for (const orderItem of orderDetails.data.line_items) {
-            // console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
-            const filterProductParama = {syncMethod:'ITEM'}; // enum: ['ITEM', 'SKU', 'BARCODE'],
-            let productFilter = { licenceNumber: licence._id };
-            switch (orderItem.syncMethod) {
-              case 'ITEM':
-                productFilter = { ...productFilter, id: orderItem.product_id }; // Add itemId if syncMethod is 'ITEM'
-                break;
-              case 'SKU':
-                if (orderItem.sku) {
-                  productFilter = { ...productFilter, sku: orderItem.sku }; // Add sku if syncMethod is 'SKU'
-                }
-                break;
-              case 'BARCODE':
-                if (orderItem.barcode) {
-                  productFilter = { ...productFilter, barcode: orderItem.barcode }; // Add barcode if syncMethod is 'BARCODE'
-                }
-                break;
-              default:
-                productFilter = { ...productFilter, id: orderItem.product_id };
-            }
+        //  const orderDetails = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: order.data.id } });
+        //   if (orderDetails) {
+        //  await CreateOrderInZoho(licence, createdOrder);
+        for (const orderItem of createdOrder.data.line_items) {
+          // console.log("order.data.line_items[0].product_id}", licence._id, orderItem.product_id)
+          const filterProductParam = { syncMethod: 'ITEM' }; // enum: ['ITEM', 'SKU', 'BARCODE']
+          let productFilter;
 
-            const wordPressProductItem = await wordPressProduct.findOne(productFilter).lean(true);
-              console.log("wordPressProductItem", wordPressProductItem)
-            if (wordPressProductItem) {
-              // console.log("call end ZOHOController");
-              if (wordPressProductItem.id === orderItem.product_id) {
-                //  console.log("wordPressProductItem", wordPressProductItem.id,orderItem.product_id, wordPressProductItem.data.stock_quantity, orderItem.quantity)
+          switch (filterProductParam.syncMethod) {
+            case 'ITEM':
+              productFilter = { licenceNumber: licence._id, id: orderItem.product_id }; // Add id if syncMethod is 'ITEM'
+              break;
+            case 'SKU':
+                productFilter = {licenceNumber: licence._id, sku: orderItem.sku }; // Add sku if orderItem.sku is available
+              break;
+            case 'BARCODE':
+              console.log("BARCODE")
+                productFilter = { licenceNumber: licence._id, barcode: orderItem.barcode }; // Add barcode if orderItem.barcode is available
+              break;
+            default:
+              // Optional: Handle default case if needed
+              break;
+          }
 
-                let updatedStockQuantity = wordPressProductItem.data.stock_quantity;
+           console.log("productFilter", productFilter)
+          const wordPressProductItem = await wordPressProduct.findOne(productFilter).lean(true);
+           console.log("wordPressProductItem", wordPressProductItem)
+          if (wordPressProductItem) {
+            // console.log("call end ZOHOController");
+            if (wordPressProductItem.id === orderItem.product_id) {
+              //  console.log("wordPressProductItem", wordPressProductItem.id,orderItem.product_id, wordPressProductItem.data.stock_quantity, orderItem.quantity)
 
-                switch (orderItem.status) {
-                  case 'completed':
-                    updatedStockQuantity -= orderItem.quantity; // Subtract when order is completed
-                    break;
-                  case 'cancelled':
-                    updatedStockQuantity += orderItem.quantity; // Add back when order is cancelled or refunded
-                    break;
-                  case 'refunded':
-                    updatedStockQuantity += orderItem.quantity; // Add back when order is cancelled or refunded
-                    break;
-                  // You can add additional conditions for other statuses if needed.
-                  default:
-                    // No change in stock for statuses like 'pending', 'processing', etc.
-                    break;
-                }
+              let updatedStockQuantity = wordPressProductItem.data.stock_quantity;
 
-                let updatedWordPressProduct = await wordPressProduct.findByIdAndUpdate(
-                  { _id: wordPressProductItem._id },
-                  {
-                    $set: {
-                     // "data.stock_quantity": wordPressProductItem.data.stock_quantity - orderItem.quantity
-                     "data.stock_quantity": updatedStockQuantity
-                    }
-                  },
-                  { new: true }
-                );
-                // console.log("updatedWordPressProduct", updatedWordPressProduct)
-                // return res.status(httpStatus.OK).send({ msg: `Updated quantity ${updatedWordPressProduct.data.stock_quantity}` });
+              switch (orderItem.status) {
+                case 'completed':
+                  updatedStockQuantity -= orderItem.quantity; // Subtract when order is completed
+                  break;
+                case 'cancelled':
+                  updatedStockQuantity += orderItem.quantity; // Add back when order is cancelled or refunded
+                  break;
+                case 'refunded':
+                  updatedStockQuantity += orderItem.quantity; // Add back when order is cancelled or refunded
+                  break;
+                // You can add additional conditions for other statuses if needed.
+                default:
+                  // No change in stock for statuses like 'pending', 'processing', etc.
+                  break;
               }
+
+              let updatedWordPressProduct = await wordPressProduct.findByIdAndUpdate(
+                { _id: wordPressProductItem._id },
+                {
+                  $set: {
+                    // "data.stock_quantity": wordPressProductItem.data.stock_quantity - orderItem.quantity
+                    "data.stock_quantity": updatedStockQuantity
+                  }
+                },
+                { new: true }
+              );
+              // console.log("updatedWordPressProduct", updatedWordPressProduct)
+              // return res.status(httpStatus.OK).send({ msg: `Updated quantity ${updatedWordPressProduct.data.stock_quantity}` });
             }
-            // return res.status(httpStatus.NOT_FOUND).send({ msg: 'ProductItem not found in Order sync' });
+          } else {
+            console.error('Product not found:', createdOrder.id);
+            await createdOrder.addErrorToOrder(createdOrder.id, 'Product not found', `Product with the provided ID does not exist ${filterProductParam}.`);
 
           }
+          // return res.status(httpStatus.NOT_FOUND).send({ msg: 'ProductItem not found in Order sync' });
+
+          // }
           return res.status(httpStatus.OK).send({ msg: 'Order sync successfully' });
         }
         return res.status(httpStatus.NOT_FOUND).send({ msg: 'Requested Order not found in Order sync' });
@@ -352,6 +366,7 @@ const fetchOrderByOrderId = async (req, res) => {
 
   } catch (e) {
     console.error(e);
+
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
       statusText: e.response.statusText,
       data: e.response.data
