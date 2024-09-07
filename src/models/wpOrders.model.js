@@ -17,12 +17,20 @@ const wordPressSchema = mongoose.Schema(
     data: { type: mongoose.Schema.Types.Mixed },
     licenceNumber: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Licences' },
     isSyncedToZoho: { type: Boolean, default: false },
+    isReadyForSync: { type: Boolean, default: true },
+    errorLogs: [{
+      message: { type: String },  // Error message
+      stack: { type: String },    // Error stack trace
+      timestamp: { type: Date, default: Date.now }  // Timestamp
+    }],
     zohoResponse: { type: mongoose.Schema.Types.Mixed }
   },
   {
     timestamps: true,
   }
 );
+
+
 
 // add plugin that converts mongoose to json
 wordPressSchema.plugin(toJSON);
@@ -57,6 +65,29 @@ wordPressSchema.plugin(paginate);
 //   next();
 // });
 
+
+wordPressSchema.methods.addErrorToOrder = async function (id, errorMessage, errorStack) {
+  try {
+    await wordPress.findByIdAndUpdate(
+      this._id,
+      {
+        isReadyForSync: false,
+        $push: {
+          errorLogs: {
+            message: errorMessage,
+            stack: errorStack,
+            timestamp: new Date()
+          }
+        }
+      },
+      { new: true }  // Return the updated document
+    );
+  } catch (err) {
+    console.error('Failed to log error to product:', err.message);
+  }
+}
+
+
 /**
  * @typedef wordPressSchema
  */
@@ -66,4 +97,4 @@ wordPressSchema.index({ licenceNumber: -1, userId: -1, id: -1 });
 wordPressSchema.index({ userId: -1, id: -1 }, { unique: true });
 
 const wordPress = mongoose.model('wordPress', wordPressSchema);
-module.exports = wordPress;
+module.exports =  wordPress ;
