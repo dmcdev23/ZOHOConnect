@@ -427,7 +427,8 @@ const transformData = async (req, data, transformWhat) => {
                 "weight_unit": "kg",
                 "dimension_unit": "cm"
             },
-            "unit": "qty"
+            "unit": "qty",
+            "sku": element?.data?.sku
         }
           
         } catch (e) {
