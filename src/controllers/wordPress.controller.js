@@ -263,7 +263,8 @@ const fetchOrderByOrderId = async (req, res) => {
             userId: licence.userId,
             id: order.data.id,
             licenceNumber: licence._id,
-            isSyncedToZoho: false
+            isSyncedToZoho: false,
+            isReadyForSync: true
           },
         },
         { upsert: true, new: true }
