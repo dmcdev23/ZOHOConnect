@@ -71,4 +71,5 @@ module.exports = {
     au: 'https://accounts.zoho.com.au/oauth/v2/',
   },
   zohoAuthBaseURL: envVars.ZOHO_AUTH_ENDPOINT,
+  wooCommerceListLimit: envVars.WOO_COMMERCE_LIST_LIMIT,
 };
