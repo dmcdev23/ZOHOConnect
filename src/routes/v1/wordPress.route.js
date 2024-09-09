@@ -52,7 +52,9 @@ router
 router.get('/', authController.recieveToken);
 
 router
-  .route('/fetchOrderByOrderId')
-  .get(wordPressController.fetchOrderByOrderId);
+  .route('/fetchOrderByOrderId').get(wordPressController.fetchOrderByOrderId);
+
+  router
+  .route('/syncOrderToZohoByOrderId') .get(auth('user'), licenceValidator, wordPressController.syncOrderToZohoByOrderId);
 
 module.exports = router;

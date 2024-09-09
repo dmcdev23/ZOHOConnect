@@ -631,6 +631,41 @@ async function CreateOrderInZoho(licence, order) {
 }
 
 
+const syncOrderToZohoByOrderId = catchAsync(async (req, res) => {
+  try {
+    console.log("req.query", req.query)
+    if (!req.query.licenceNumber || !req.query.orderId) {
+      return res.status(httpStatus.OK).send({ msg: 'Invalid param pass' });
+    }
+
+    const licence = await licenceService.findOne({ _id: ObjectId(req.query.licenceNumber) });
+    if (licence) {
+      req.user = req.user || {};
+      req.user['_id'] = licence?.userId;
+      req.query.licenceNumber = licence._id;
+      req.query.organization_id = licence.zohoOrganizationId;
+    }
+    else {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
+    }
+
+    const order = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: req.query.orderId } });
+    if(!order){
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid Order Id' });
+    }
+
+     await CreateOrderInZoho(licence, order);
+
+    res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
+  } catch (e) {
+    console.error(e);
+    res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
+      statusText: e.response.statusText,
+      data: e.response.data
+    } : e);
+  }
+})
+
 // async function CreateOrderInZoho(licence, order) {
 //   try {
 //     //  console.log("call CreateOrderInZoho", order)
@@ -762,7 +797,8 @@ module.exports = {
   syncOrderToZoho,
   getProduct,
   getCustomer,
-  fetchOrderByOrderId
+  fetchOrderByOrderId,
+  syncOrderToZohoByOrderId
 };
 
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
