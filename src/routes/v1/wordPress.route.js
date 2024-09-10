@@ -57,4 +57,7 @@ router
   router
   .route('/syncOrderToZohoByOrderId') .get(auth('user'), licenceValidator, wordPressController.syncOrderToZohoByOrderId);
 
+  router
+  .route('/syncProductToZohoByProductId') .get(auth('user'), licenceValidator, wordPressController.syncProductToZohoByProductId);
+
 module.exports = router;
