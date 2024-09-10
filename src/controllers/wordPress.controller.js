@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { wooCommerceListLimit } = require('../config/config');
-const { licenceService, wordPressService } = require('../services');
+const { licenceService, wordPressService, syncHistoryService } = require('../services');
 const { post, put, getDynamic, get } = require('../commonServices/axios.service');
 const mongoose = require('mongoose');
 const { response } = require('express');
@@ -212,7 +212,7 @@ const syncCustomer = catchAsync(async (req, res) => {
       true,
       { id: 1, _id: 0 }
     );
-    await fetchFromGeneric(WooCommerce, IdsToExclude, req, 'customers');
+    await fetchFromGeneric(WooCommerce, IdsToExclude, req, 'customers', res);
     res.status(httpStatus.OK).send({ msg: 'Customer sync in progress' });
   } catch (e) {
     console.error(e);
@@ -727,140 +727,6 @@ const syncOrderToZohoByOrderId = catchAsync(async (req, res) => {
   }
 });
 
-// async function CreateOrderInZoho(licence, order) {
-//   try {
-//     //  console.log("call CreateOrderInZoho", order)
-//     let orderItem;
-//     // console.log("postCreateOrder");
-//     // const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
-//     //  const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
-//     // console.log("orders", orders.length)
-//     if (order) {
-//       //  for (const item of createdOrder) {
-//       // console.log("item",item.id)
-
-//       const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: order.data.line_items[0].product_id }).lean(true);
-//       // console.log("wordPressProduct", wordPressProductItem)
-//       const customer = await wordPressCustomer.findOne({ licenceNumber: licence._id, "data.email": order.data.billing.email }).lean(true);
-//       if (customer) {
-//         //console.log("customer", customer.contact_id, "SO-" + item.id);
-//         let contact_id = customer.contact_id;
-//         orderItem = {
-//           "customer_id": contact_id,
-//           "salesorder_number": "SO-" + order.id,
-//           "date": order.data.date_created.split('T')[0],
-//           "shipment_date": "",
-//           "custom_fields": [],
-//           "is_inclusive_tax": false,
-//           // "ignore_auto_number_generation" : false,
-//           "line_items": [
-//             {
-//               "item_order": 1,//will changes with lineItem index
-//               "item_id": wordPressProductItem?.item_id,
-//               "rate": order.data.line_items[0].price.toFixed(2),
-//               "name": order.data.line_items[0].name,
-//               "description":
-//                 "Test Item",
-//               "quantity": order.data.line_items[0].quantity,
-//               "quantity_invoiced": order.data.line_items[0].quantity,
-//               "quantity_packed": order.data.line_items[0].quantity,
-//               "quantity_shipped": order.data.line_items[0].quantity,
-//               "discount": "0%",
-//               "tax_id": "",
-//               "tax_name": "IN-TAX-1",
-//               "tax_percentage": 18, //will changes dynamically later
-//               "tags": [],
-//               "item_custom_fields": [],
-//               "unit": "g"
-//             }],
-//           "notes": "",
-//           "terms": "",
-//           "discount": 0,
-//           "is_discount_before_tax": true,
-//           "discount_type": "entity_level",
-//           "adjustment_description": "Adjustment",
-//           "pricebook_id": "",
-//           "template_id": "1944648000000000239",
-//           "documents": [],
-//           // "shipping_address_id": "1944648000000039384",
-//           // "billing_address_id": "1944648000000039382",
-//           //    "zcrm_potential_id": "",
-//           // "zcrm_potential_name": "",
-//           "payment_terms": 0,
-//           "payment_terms_label": "Due on Receipt",
-//           "is_adv_tracking_in_package": false,
-//           "is_tcs_amount_in_percent": true
-//         };
-//         //  console.log("orderItem", orderItem)
-//         const zohoHeaders = {
-//           endpoint: 'salesorders' + `?organization_id=${licence.zohoOrganizationId}`,
-//           accessToken: licence?.accessToken,
-//           data: JSON.stringify(orderItem), // Use orderItem instead of order
-//         };
-//         //    console.log("data", data)
-//         let zohoResponse = await post(zohoHeaders);
-
-//         const {
-//           status,
-//           statusText,
-//           headers,
-//           config,
-//           data
-//         } = zohoResponse;
-//         //  console.log("response API",data );
-//         //  console.log("data", data)
-//         if (data == 200) {
-//           await WordPressModel.findOneAndUpdate(
-//             {
-//               _id: order._id,
-//             },
-//             {
-//               $set: {
-//                 isSyncedToZoho: true
-//               },
-//             }
-//           );
-//         } else {
-//           await WordPressModel.findOneAndUpdate(
-//             {
-//               _id: order._id,
-//             },
-//             {
-//               $set: {
-//                 zohoResponse: {
-//                   config: config,
-//                   response: data
-//                 }
-//               },
-//             }
-//           );
-//         }
-//       }
-//     }
-//     // }
-//     // res.status(httpStatus.OK).send({ msg: 'Order  sync in progress' });
-
-//   } catch (e) {
-//     console.error(e);
-//     return e;
-//   }
-// };
-
-module.exports = {
-  syncOrders,
-  linkLicence,
-  getOrders,
-  syncCustomer,
-  syncCustomerToZoho,
-  syncProduct,
-  syncProductToZoho,
-  syncOrderToZoho,
-  getProduct,
-  getCustomer,
-  fetchOrderByOrderId,
-  syncOrderToZohoByOrderId,
-};
-
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
   const responseArray = [];
   const limit = 100;
@@ -882,41 +748,50 @@ const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
   }
 };
 
+const updateSyncHistory = async (licenceNumber, status, syncedCount, totalCount = undefined) => {
+  const data = await syncHistoryService.createOrUpdateSyncHistory(ObjectId(licenceNumber), {
+    status,
+    syncedCount,
+    ...(totalCount && { totalCount }),
+  });
+};
+
 const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'customers', res) => {
   try {
+    const serviceMap = {
+      customers: wordPressService.createCustomer,
+      products: wordPressService.createProduct,
+    };
+    const responseArray = [];
+    const limit = wooCommerceListLimit || 100;
     let sendResponse = true;
-    {
-      const serviceMap = {
-        customers: wordPressService.createCustomer,
-        products: wordPressService.createProduct,
-      };
-      const responseArray = [];
-      const limit = wooCommerceListLimit || 100;
-      for (let i = 1; ; i++) {
-        const orders = await WooCommerce.get(getWhat, {
-          per_page: limit,
-          page: i,
-          exclude: IdsToExclude.map((ele) => ele.id),
-        });
-        const totalResources = orders.headers['x-wp-total'];
-        const totalPages = orders.headers['x-wp-totalpages'];
-        if (orders?.status === httpStatus.OK) {
-          if (sendResponse) {
-            await res.status(httpStatus.OK).send({ msg: 'Product sync in progress' });
-            sendResponse = false;
-          }
-          responseArray.push(...orders.data);
-        } else {
-          responseArray.push(...orders.data);
+
+    for (let i = 1; ; i++) {
+      const orders = await WooCommerce.get(getWhat, {
+        per_page: limit,
+        page: i,
+        exclude: IdsToExclude.map((ele) => ele.id),
+      });
+
+      if (orders?.status === httpStatus.OK) {
+        responseArray.push(...orders.data);
+        await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, orders.headers['x-wp-total']);
+        if (sendResponse) {
+          res.status(httpStatus.OK).send({ msg: `${getWhat.charAt(0).toUpperCase() + getWhat.slice(1)} sync in progress` });
+          sendResponse = false;
         }
-        if (orders?.data?.length < limit) {
-          break;
-        }
+      } else {
+        responseArray.push(...orders.data);
       }
-      await wordPressService.bulkDeleteByLicenseNumber(req.query.licenceNumber);
-      await serviceMap[getWhat](req, responseArray);
+
+      if (orders?.data?.length < limit) {
+        await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
+        break;
+      }
     }
+    await serviceMap[getWhat](req, responseArray);
   } catch (e) {
+    await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
     console.log(e);
     throw e;
   }
@@ -1034,4 +909,25 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
     console.log(e);
     throw e;
   }
+};
+
+const getSyncHistory = async (req, res) => {
+  const syncHistory = await syncHistoryService.getSyncHistory(req.query.licenceNumber);
+  res.status(httpStatus.OK).send({ syncHistory });
+};
+
+module.exports = {
+  syncOrders,
+  linkLicence,
+  getOrders,
+  syncCustomer,
+  syncCustomerToZoho,
+  syncProduct,
+  syncProductToZoho,
+  syncOrderToZoho,
+  getProduct,
+  getCustomer,
+  fetchOrderByOrderId,
+  syncOrderToZohoByOrderId,
+  getSyncHistory,
 };

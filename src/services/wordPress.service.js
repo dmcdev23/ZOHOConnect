@@ -176,6 +176,10 @@ const createCustomer = async (req, data) => {
 };
 
 const createProduct = async (req, data) => {
+  const licenseNumber = ObjectId(req.query.licenseNumber);
+
+  await wordPressProduct.deleteMany({ licenceNumber: licenseNumber });
+
   const productData = data.map((ele) => ({
     updateOne: {
       filter: {
