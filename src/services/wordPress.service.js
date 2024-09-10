@@ -138,7 +138,7 @@ const createOrder = async (req, data) => {
             userId: req.user._id,
             id: ele.id,
             licenceNumber: ObjectId(req.query.licenceNumber),
-            isSyncedToZoho: false
+            isSyncedToZoho: false,
           },
         },
         upsert: true,
@@ -162,7 +162,7 @@ const createCustomer = async (req, data) => {
             last_name: ele.last_name,
             billing: ele.billing,
             shipping: ele.shipping,
-            email: ele.email
+            email: ele.email,
           },
           userId: req.user._id,
           id: ele.id,
@@ -173,11 +173,11 @@ const createCustomer = async (req, data) => {
       upsert: true,
     },
   }));
-  return await wordPressCustomer.bulkWrite(data);
+  await wordPressCustomer.bulkWrite(data);
 };
 
 const createProduct = async (req, data) => {
-  data = data.map((ele) => ({
+  const productData = data.map((ele) => ({
     updateOne: {
       filter: {
         userId: req.user._id,
@@ -192,7 +192,7 @@ const createProduct = async (req, data) => {
             sku: ele.sku,
             categories: ele.categories,
             images: ele.images,
-            wp_data: ele
+            wp_data: ele,
           },
           userId: req.user._id,
           id: ele.id,
@@ -203,8 +203,8 @@ const createProduct = async (req, data) => {
       upsert: true,
     },
   }));
- // console.log("create product", data)
-  return await wordPressProduct.bulkWrite(data);
+
+  await wordPressProduct.bulkWrite(productData);
 };
 
 const bulkWrite = async (pipeline) => {
@@ -223,7 +223,6 @@ const bulkWriteOrders = async (pipeline) => {
 };
 
 const getOrerCount = async (filter) => {
-  console.log("getOrerCount filter", filter)
   const [data] = await WordPressModel.aggregate([
     {
       $match: filter,
@@ -322,6 +321,17 @@ const getOrderCount = async (filter) => {
   return data;
 };
 
+const bulkDeleteByLicenseNumber = async (licenceNumber) => {
+  if (!ObjectId.isValid(licenceNumber)) {
+    throw new Error('Invalid ObjectId');
+  }
+
+  const result = await wordPressProduct.deleteMany({
+    licenceNumber: ObjectId(licenceNumber),
+  });
+  return result;
+};
+
 module.exports = {
   findOrder,
   createOrder,
@@ -336,5 +346,6 @@ module.exports = {
   getOrerCount,
   bulkWriteOrders,
   findOrderAggregate,
-  getOrderCount
+  getOrderCount,
+  bulkDeleteByLicenseNumber,
 };
