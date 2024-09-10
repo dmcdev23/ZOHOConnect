@@ -707,7 +707,7 @@ const syncOrderToZohoByOrderId = catchAsync(async (req, res) => {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
     }
 
-    const order = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: req.query.orderId } });
+    const order = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: req.query.orderId }, isSyncedToZoho: false });
     if (!order) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid Order Id' });
     }
@@ -747,7 +747,7 @@ const syncProductToZohoByProductId = catchAsync(async (req, res) => {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
     }
 
-    const product = await wordPressProduct.findOne({ licenceNumber: licence._id, id: { $eq: req.query.productId } });
+    const product = await wordPressProduct.findOne({ licenceNumber: licence._id, id: { $eq: req.query.productId }, isSyncedToZoho: false });
     if (!product) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid Product Id' });
     }
