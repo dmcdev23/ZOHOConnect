@@ -43,7 +43,7 @@ const syncProduct = catchAsync(async (req, res) => {
   try {
     //console.log("syncProduct req",  req.query.licenceNumber )
     const licence = await licenceService.findOne({ _id: ObjectId(req.query.licenceNumber) });
-    console.log("syncProduct licence", licence)
+  //  console.log("syncProduct licence", licence)
     const WooCommerce = new WooCommerceRestApi({
       url: licence.storeUrl,
       consumerKey: licence.WPKey,
@@ -296,20 +296,20 @@ const fetchOrderByOrderId = async (req, res) => {
               productFilter = { licenceNumber: licence._id, id: orderItem.product_id }; // Add id if syncMethod is 'ITEM'
               break;
             case 'SKU':
-                productFilter = {licenceNumber: licence._id, sku: orderItem.sku }; // Add sku if orderItem.sku is available
+              productFilter = { licenceNumber: licence._id, sku: orderItem.sku }; // Add sku if orderItem.sku is available
               break;
             case 'BARCODE':
               console.log("BARCODE")
-                productFilter = { licenceNumber: licence._id, barcode: orderItem.barcode }; // Add barcode if orderItem.barcode is available
+              productFilter = { licenceNumber: licence._id, barcode: orderItem.barcode }; // Add barcode if orderItem.barcode is available
               break;
             default:
               // Optional: Handle default case if needed
               break;
           }
 
-           console.log("productFilter", productFilter)
+          console.log("productFilter", productFilter)
           const wordPressProductItem = await wordPressProduct.findOne(productFilter).lean(true);
-           console.log("wordPressProductItem", wordPressProductItem)
+          console.log("wordPressProductItem", wordPressProductItem)
           if (wordPressProductItem) {
             // console.log("call end ZOHOController");
             if (wordPressProductItem.id === orderItem.product_id) {
@@ -492,7 +492,7 @@ async function CreateOrderInZoho(licence, order) {
     }
     //console.log("customer", customer)
     const contact_id = customer.contact_id;
-    
+
     let zohoOrderStatus = "";
     // Prepare an array to hold all line items for Zoho payload
     const lineItems = await Promise.all(order.data.line_items.map(async (lineItem, index) => {
@@ -504,7 +504,7 @@ async function CreateOrderInZoho(licence, order) {
       if (!wordPressProductItem) {
         throw new Error(`Product not found for product_id: ${lineItem.product_id}`);
       }
-      
+
       switch (lineItem.status) {
         case 'processing':
           zohoOrderStatus = "fulfilled"
@@ -615,6 +615,7 @@ async function CreateOrderInZoho(licence, order) {
         { _id: order._id },
         {
           $set: {
+            isSyncedToZoho: false,
             zohoResponse: {
               config: config,
               response: data
@@ -650,11 +651,11 @@ const syncOrderToZohoByOrderId = catchAsync(async (req, res) => {
     }
 
     const order = await WordPressModel.findOne({ licenceNumber: licence._id, id: { $eq: req.query.orderId } });
-    if(!order){
+    if (!order) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid Order Id' });
     }
 
-     await CreateOrderInZoho(licence, order);
+    await CreateOrderInZoho(licence, order);
 
     res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
   } catch (e) {
@@ -666,125 +667,112 @@ const syncOrderToZohoByOrderId = catchAsync(async (req, res) => {
   }
 })
 
-// async function CreateOrderInZoho(licence, order) {
-//   try {
-//     //  console.log("call CreateOrderInZoho", order)
-//     let orderItem;
-//     // console.log("postCreateOrder");
-//     // const res_token = await licenceService.findOne({ _id: new ObjectId(req.query.licenceNumber) });
-//     //  const orders = await wordPressService.findOrder({ licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: false });
-//     // console.log("orders", orders.length)
-//     if (order) {
-//       //  for (const item of createdOrder) {
-//       // console.log("item",item.id)
 
-//       const wordPressProductItem = await wordPressProduct.findOne({ licenceNumber: licence._id, id: order.data.line_items[0].product_id }).lean(true);
-//       // console.log("wordPressProduct", wordPressProductItem)
-//       const customer = await wordPressCustomer.findOne({ licenceNumber: licence._id, "data.email": order.data.billing.email }).lean(true);
-//       if (customer) {
-//         //console.log("customer", customer.contact_id, "SO-" + item.id);
-//         let contact_id = customer.contact_id;
-//         orderItem = {
-//           "customer_id": contact_id,
-//           "salesorder_number": "SO-" + order.id,
-//           "date": order.data.date_created.split('T')[0],
-//           "shipment_date": "",
-//           "custom_fields": [],
-//           "is_inclusive_tax": false,
-//           // "ignore_auto_number_generation" : false,
-//           "line_items": [
-//             {
-//               "item_order": 1,//will changes with lineItem index 
-//               "item_id": wordPressProductItem?.item_id,
-//               "rate": order.data.line_items[0].price.toFixed(2),
-//               "name": order.data.line_items[0].name,
-//               "description":
-//                 "Test Item",
-//               "quantity": order.data.line_items[0].quantity,
-//               "quantity_invoiced": order.data.line_items[0].quantity,
-//               "quantity_packed": order.data.line_items[0].quantity,
-//               "quantity_shipped": order.data.line_items[0].quantity,
-//               "discount": "0%",
-//               "tax_id": "",
-//               "tax_name": "IN-TAX-1",
-//               "tax_percentage": 18, //will changes dynamically later 
-//               "tags": [],
-//               "item_custom_fields": [],
-//               "unit": "g"
-//             }],
-//           "notes": "",
-//           "terms": "",
-//           "discount": 0,
-//           "is_discount_before_tax": true,
-//           "discount_type": "entity_level",
-//           "adjustment_description": "Adjustment",
-//           "pricebook_id": "",
-//           "template_id": "1944648000000000239",
-//           "documents": [],
-//           // "shipping_address_id": "1944648000000039384", 
-//           // "billing_address_id": "1944648000000039382", 
-//           //    "zcrm_potential_id": "", 
-//           // "zcrm_potential_name": "",
-//           "payment_terms": 0,
-//           "payment_terms_label": "Due on Receipt",
-//           "is_adv_tracking_in_package": false,
-//           "is_tcs_amount_in_percent": true
-//         };
-//         //  console.log("orderItem", orderItem)
-//         const zohoHeaders = {
-//           endpoint: 'salesorders' + `?organization_id=${licence.zohoOrganizationId}`,
-//           accessToken: licence?.accessToken,
-//           data: JSON.stringify(orderItem), // Use orderItem instead of order
-//         };
-//         //    console.log("data", data)
-//         let zohoResponse = await post(zohoHeaders);
+const syncProductToZohoByProductId = catchAsync(async (req, res) => {
+  try {
+    console.log("req.query", req.query)
+    if (!req.query.licenceNumber || !req.query.productId) {
+      return res.status(httpStatus.OK).send({ msg: 'Invalid param pass' });
+    }
 
-//         const {
-//           status,
-//           statusText,
-//           headers,
-//           config,
-//           data
-//         } = zohoResponse;
-//         //  console.log("response API",data );
-//         //  console.log("data", data)
-//         if (data == 200) {
-//           await WordPressModel.findOneAndUpdate(
-//             {
-//               _id: order._id,
-//             },
-//             {
-//               $set: {
-//                 isSyncedToZoho: true
-//               },
-//             }
-//           );
-//         } else {
-//           await WordPressModel.findOneAndUpdate(
-//             {
-//               _id: order._id,
-//             },
-//             {
-//               $set: {
-//                 zohoResponse: {
-//                   config: config,
-//                   response: data
-//                 }
-//               },
-//             }
-//           );
-//         }
-//       }
-//     }
-//     // }
-//     // res.status(httpStatus.OK).send({ msg: 'Order  sync in progress' });
+    const licence = await licenceService.findOne({ _id: ObjectId(req.query.licenceNumber) });
+    if (licence) {
+      req.user = req.user || {};
+      req.user['_id'] = licence?.userId;
+      req.query.licenceNumber = licence._id;
+      req.query.organization_id = licence.zohoOrganizationId;
+    }
+    else {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
+    }
 
-//   } catch (e) {
-//     console.error(e);
-//     return e;
-//   }
-// };
+    const product = await wordPressProduct.findOne({ licenceNumber: licence._id, id: { $eq: req.query.productId } });
+    if (!product) {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid Product Id' });
+    }
+  //  console.log("product", product)
+    if (product) {
 
+      const productZohoPayload = {
+        "name": product?.data?.name,
+        "rate": parseFloat(product?.data?.price),
+        "account_id": "1944648000000000486",
+        "tax_id": "",
+        "tags": [],
+        "custom_fields": [],
+        "purchase_rate": parseFloat(product?.data?.price),
+        "purchase_account_id": "1944648000000000567",
+        "item_type": "inventory",
+        "product_type": "goods",
+        "inventory_account_id": "1944648000000000626",
+        "initial_stock": product?.data?.stock_quantity,
+        "initial_stock_rate": product?.data?.stock_quantity,
+        "is_returnable": true,
+        "package_details": {
+          "weight_unit": "kg",
+          "dimension_unit": "cm"
+        },
+        "unit": "qty",
+        "sku": product?.data?.sku
+      };
+      const zohoHeaders = {
+        endpoint: 'items' + `?organization_id=${licence.zohoOrganizationId}`,
+        accessToken: licence?.accessToken,
+        data: JSON.stringify(productZohoPayload)
+      };
+      
+      // Post to Zoho
+      const zohoResponse = await post(zohoHeaders);
+    //  console.log("zohoResponse", zohoResponse)
+    let status, statusText, headers, config, data;
+
+    if (zohoResponse?.response) {
+      // Failed response
+      ({ status, statusText, headers, config, data } = zohoResponse.response);
+    } else {
+      // Success response
+      ({ status, statusText, headers, config, data } = zohoResponse);
+    };
+  //  console.log(status, statusText, headers, config, data);
+      // Handle Zoho API Response
+      if (data?.code == 0) {
+        await wordPressProduct.findOneAndUpdate(
+          { _id: product._id },
+          {
+            $set: {
+              isSyncedToZoho: true,
+              zohoResponse: {
+                config: config,
+                response: data
+              }
+            }
+          }
+        );
+      } else {
+        await wordPressProduct.findOneAndUpdate(
+          { _id: product._id },
+          {
+            $set: {
+              isSyncedToZoho: false,
+              zohoResponse: {
+                config: config,
+                response: data
+              }
+            }
+          }
+        );
+      }
+    }
+
+    res.status(httpStatus.OK).send({ msg: "Product publish in progress" });
+  } catch (e) {
+    console.error(e);
+    res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(!!e?.response ? {
+      statusText: e.response.statusText,
+      data: e.response.data
+    } : e);
+  }
+})
 
 module.exports = {
   syncOrders,
@@ -798,7 +786,8 @@ module.exports = {
   getProduct,
   getCustomer,
   fetchOrderByOrderId,
-  syncOrderToZohoByOrderId
+  syncOrderToZohoByOrderId,
+  syncProductToZohoByProductId
 };
 
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {

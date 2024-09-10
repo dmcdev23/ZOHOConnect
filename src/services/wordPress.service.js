@@ -166,7 +166,8 @@ const createCustomer = async (req, data) => {
           },
           userId: req.user._id,
           id: ele.id,
-          licenceNumber: ObjectId(req.query.licenceNumber)
+          licenceNumber: ObjectId(req.query.licenceNumber),
+          isSyncedToZoho: false
         },
       },
       upsert: true,
@@ -195,7 +196,8 @@ const createProduct = async (req, data) => {
           },
           userId: req.user._id,
           id: ele.id,
-          licenceNumber: ObjectId(req.query.licenceNumber)
+          licenceNumber: ObjectId(req.query.licenceNumber),
+          isSyncedToZoho: false
         },
       },
       upsert: true,
