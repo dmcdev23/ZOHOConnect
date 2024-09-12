@@ -7,3 +7,4 @@ module.exports.wordPressProduct = require('./wpProduct.model');
 module.exports.ItemSyncSetup = require('./itemSyncSetup.model');
 module.exports.OrderSyncSetup = require('./orderSyncSetup.model');
 module.exports.ScheduledJobForSyncItem = require('./scheduledJobForSyncItem.model');
+module.exports.SyncHistory = require('./syncHistory.model');

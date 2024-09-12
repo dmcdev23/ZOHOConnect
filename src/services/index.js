@@ -6,3 +6,4 @@ module.exports.licenceService = require('./zoho.connect.service');
 module.exports.wordPressService = require('./wordPress.service');
 module.exports.ItemSyncService = require('./itemSync.service');
 module.exports.OrderSyncService = require('./orderSync.services');
+module.exports.syncHistoryService = require('./syncHistory.service');
