@@ -176,35 +176,75 @@ const createCustomer = async (req, data) => {
   await wordPressCustomer.bulkWrite(data);
 };
 
+// const createProduct = async (req, data) => {
+//   const productData = data.map((ele) => ({
+//     updateOne: {
+//       filter: {
+//         userId: req.user._id,
+//         id: ele.id,
+//       },
+//       update: {
+//         $set: {
+//           data: {
+//             name: ele.name,
+//             price: Number(ele.price),
+//             stock_quantity: ele.stock_quantity,
+//             sku: ele.sku,
+//             categories: ele.categories,
+//             images: ele.images,
+//             wp_data: ele,
+//           },
+//           userId: req.user._id,
+//           id: ele.id,
+//           licenceNumber: ObjectId(req.query.licenceNumber),
+//           isSyncedToZoho: false
+//         },
+//       },
+//       upsert: true,
+//     },
+//   }));
+
+//   await wordPressProduct.bulkWrite(productData);
+// };
+
 const createProduct = async (req, data) => {
-  const productData = data.map((ele) => ({
-    updateOne: {
-      filter: {
-        userId: req.user._id,
-        id: ele.id,
-      },
-      update: {
-        $set: {
-          data: {
-            name: ele.name,
-            price: Number(ele.price),
-            stock_quantity: ele.stock_quantity,
-            sku: ele.sku,
-            categories: ele.categories,
-            images: ele.images,
-            wp_data: ele,
-          },
+  const chunkSize = 500; // Adjust this size based on performance and testing
+  const productChunks = [];
+  for (let i = 0; i < data.length; i += chunkSize) {
+    const chunk = data.slice(i, i + chunkSize).map((ele) => ({
+      updateOne: {
+        filter: {
           userId: req.user._id,
           id: ele.id,
-          licenceNumber: ObjectId(req.query.licenceNumber),
-          isSyncedToZoho: false
         },
+        update: {
+          $set: {
+            data: {
+              name: ele.name,
+              price: Number(ele.price),
+              stock_quantity: ele.stock_quantity,
+              sku: ele.sku,
+              categories: ele.categories,
+              images: ele.images,
+              wp_data: ele,
+            },
+            userId: req.user._id,
+            id: ele.id,
+            licenceNumber: ObjectId(req.query.licenceNumber),
+            isSyncedToZoho: false,
+          },
+        },
+        upsert: true,
       },
-      upsert: true,
-    },
-  }));
-
-  await wordPressProduct.bulkWrite(productData);
+    }));
+    productChunks.push(chunk);
+  }
+  // Process each chunk sequentially
+  // eslint-disable-next-line no-restricted-syntax
+  for (const chunk of productChunks) {
+    // eslint-disable-next-line no-await-in-loop
+    await wordPressProduct.bulkWrite(chunk);
+  }
 };
 
 const bulkWrite = async (pipeline) => {
