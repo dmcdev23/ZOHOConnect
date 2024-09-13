@@ -207,45 +207,114 @@ const createCustomer = async (req, data) => {
 //   await wordPressProduct.bulkWrite(productData);
 // };
 
+// const createProduct = async (req, data) => {
+//   const chunkSize = 500; // Adjust this size based on performance and testing
+//   const productChunks = [];
+//   console.log("data.length", data.length)
+//   for (let i = 0; i < data.length; i += chunkSize) {
+//       const chunk = data.slice(i, i + chunkSize).map((ele) => ({
+//         insertOne: {
+//           document: {
+//             data: {
+//               name: ele.name,
+//               price: Number(ele.price),
+//               stock_quantity: ele.stock_quantity,
+//               sku: ele.sku,
+//               categories: ele.categories,
+//               images: ele.images,
+//               wp_data: ele,
+//             },
+//             userId: req.user._id,
+//             id: ele.id,
+//             licenceNumber: ObjectId(req.query.licenceNumber),
+//             isSyncedToZoho: false,
+//           },
+//         },
+//       }));
+//       productChunks.push(chunk);
+//     }
+
+//   console.log("productChunks", productChunks.length)
+//   // Process each chunk sequentially
+//   // eslint-disable-next-line no-restricted-syntax
+//   for (const chunk of productChunks) {
+//     // eslint-disable-next-line no-await-in-loop
+//     console.log("productChunks chunk", chunk.length, chunk)
+//      let wordPressProductBulkInsert =   await wordPressProduct.bulkWrite(chunk);
+//      console.log("wordPressProductBulkInsert", wordPressProductBulkInsert)
+//   }
+// };
+
+const sanitizeKeys = (obj) => {
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeKeys);
+  } else if (typeof obj === 'object' && obj !== null) {
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+      const sanitizedKey = key.replace(/\./g, '_'); // Replace periods with underscores
+      acc[sanitizedKey] = sanitizeKeys(value);
+      return acc;
+    }, {});
+  }
+  return obj;
+};
+
 const createProduct = async (req, data) => {
-  const chunkSize = 500; // Adjust this size based on performance and testing
+  const chunkSize = 500; // Adjust this size as needed
   const productChunks = [];
+
+  console.log("Total data length:", data.length);
+  const result = await wordPressProduct.deleteMany({
+    userId: req.user._id,
+    licenceNumber: ObjectId(req.query.licenceNumber),
+  });
+  
+  // Create chunks of data
   for (let i = 0; i < data.length; i += chunkSize) {
-    const chunk = data.slice(i, i + chunkSize).map((ele) => ({
-      updateOne: {
-        filter: {
-          userId: req.user._id,
-          id: ele.id,
-        },
-        update: {
-          $set: {
+    const chunk = data.slice(i, i + chunkSize).map((ele) => {
+      // Sanitize the ele data before inserting
+      const sanitizedData = sanitizeKeys(ele);
+      return {
+        insertOne: {
+          document: {
             data: {
-              name: ele.name,
-              price: Number(ele.price),
-              stock_quantity: ele.stock_quantity,
-              sku: ele.sku,
-              categories: ele.categories,
-              images: ele.images,
-              wp_data: ele,
+              name: sanitizedData.name,
+              price: Number(sanitizedData.price),
+              stock_quantity: sanitizedData.stock_quantity,
+              sku: sanitizedData.sku,
+              categories: sanitizedData.categories,
+              images: sanitizedData.images,
+              wp_data: sanitizedData, // Assuming ele contains nested data
             },
             userId: req.user._id,
-            id: ele.id,
+            id: sanitizedData.id,
             licenceNumber: ObjectId(req.query.licenceNumber),
-            isSyncedToZoho: false,
+            isSyncedToZoho: false
           },
         },
-        upsert: true,
-      },
-    }));
+      };
+    });
     productChunks.push(chunk);
   }
+
+  console.log("Number of chunks:", productChunks.length);
+
   // Process each chunk sequentially
-  // eslint-disable-next-line no-restricted-syntax
   for (const chunk of productChunks) {
-    // eslint-disable-next-line no-await-in-loop
-    await wordPressProduct.bulkWrite(chunk);
+    
+    try {
+      const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(chunk);
+      console.log("Bulk insert result:", wordPressProductBulkInsert);
+    } catch (error) {
+      console.error("Bulk insert error:", error);
+      if (error.writeErrors) {
+        error.writeErrors.forEach((writeError) => {
+          console.error("Failed operation:", writeError.err);
+        });
+      }
+    }
   }
 };
+
 
 const bulkWrite = async (pipeline) => {
   const data = await wordPressCustomer.bulkWrite(pipeline);
