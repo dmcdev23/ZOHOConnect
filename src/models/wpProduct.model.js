@@ -30,10 +30,10 @@ const wordPressProductSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 wordPressProductSchema.plugin(toJSON);
 wordPressProductSchema.plugin(paginate);
-wordPressProductSchema.index({ id: -1 });
-wordPressProductSchema.index({ licenceNumber: -1, userId: -1 });
-wordPressProductSchema.index({ licenceNumber: -1, isSyncedToZoho: -1 });
-wordPressProductSchema.index({ userId: -1, id: -1, licenceNumber: -1 }, { unique: true });
+// wordPressProductSchema.index({ id: -1 });
+// wordPressProductSchema.index({ licenceNumber: -1, userId: -1 });
+// wordPressProductSchema.index({ licenceNumber: -1, isSyncedToZoho: -1 });
+// wordPressProductSchema.index({ userId: -1, id: -1, licenceNumber: -1 }, { unique: true });
 
 const wordPressProduct = mongoose.model('wordPressProduct', wordPressProductSchema);
 module.exports = wordPressProduct;
