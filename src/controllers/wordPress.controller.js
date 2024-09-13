@@ -880,7 +880,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       products: wordPressService.createProduct,
     };
     const responseArray = [];
-    const limit = wooCommerceListLimit || 100;
+    const limit = 50;
     let sendResponse = true;
 
     for (let i = 1; ; i++) {
