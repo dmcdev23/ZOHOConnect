@@ -20,9 +20,7 @@ router
   .route('/getOrders')
   .get(auth('user'), validate(wordPressValidation.getOrders), licenceValidator, wordPressController.getOrders);
 
-router
-  .route('/getProduct')
-  .get(auth('user'), validate(wordPressValidation.getProducts), licenceValidator, wordPressController.getProduct);
+router.route('/getProduct').get(auth('user'), validate(wordPressValidation.getProducts), wordPressController.getProduct);
 
 router
   .route('/getCustomer')

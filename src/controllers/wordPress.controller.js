@@ -8,7 +8,7 @@ const { response } = require('express');
 const ZOHOController = require('./ZOHO.controller');
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 const ObjectId = mongoose.Types.ObjectId;
-const { wordPressProduct, WordPressModel, wordPressCustomer } = require('../models');
+const { wordPressProduct, WordPressModel, wordPressCustomer, ItemSyncSetup } = require('../models');
 const axios = require('axios');
 
 const syncOrders = catchAsync(async (req, res) => {
@@ -102,12 +102,14 @@ const getOrders = catchAsync(async (req, res) => {
 
 const getProduct = catchAsync(async (req, res) => {
   try {
+    const orderSyncDetail = await ItemSyncSetup.findOne({ licenseNumber: ObjectId(req.query.licenceNumber) });
     const licence = await wordPressService.findProduct(
       { licenceNumber: ObjectId(req.query.licenceNumber) },
       true,
       {},
       { page: req.query.page, limit: req.query.limit },
-      req.query.listType
+      req.query.listType,
+      orderSyncDetail
     );
     res.status(httpStatus.OK).send(licence);
   } catch (e) {

@@ -109,10 +109,38 @@ const findCustomer = async (filter, lean = true, project = {}, options = {}) => 
   return data;
 };
 
-const findProduct = async (filter, lean = true, project = {}, options = {}, listType = 'item') => {
+const findProduct = async (filter, lean = true, project = {}, options = {}, listType = 'item', orderSyncDetail) => {
   if (listType === 'item') {
-    const data = await wordPressProduct.find(filter, project, options).populate('userId').lean(lean);
-    return data;
+    const pipeline = [
+      { $match: filter },
+      {
+        $facet: {
+          metadata: [{ $count: 'totalRecords' }],
+          data: [
+            { $skip: options.page * options.limit },
+            { $limit: options.limit || 5 },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'userId',
+                foreignField: '_id',
+                as: 'user',
+              },
+            },
+            { $unwind: '$user' },
+          ],
+        },
+      },
+      {
+        $project: {
+          data: 1,
+          total: { $arrayElemAt: ['$metadata.totalRecords', 0] },
+        },
+      },
+    ];
+
+    const data = await wordPressProduct.aggregate(pipeline).exec();
+    return lean ? data : data.map((doc) => doc.toObject());
   }
   if (listType === 'error') {
     const data = await wordPressProduct.find(filter, project, options).populate('userId').lean(lean);
