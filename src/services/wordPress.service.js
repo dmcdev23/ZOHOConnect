@@ -116,19 +116,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, list
       {
         $facet: {
           metadata: [{ $count: 'totalRecords' }],
-          data: [
-            { $skip: options.page * options.limit },
-            { $limit: options.limit || 5 },
-            {
-              $lookup: {
-                from: 'users',
-                localField: 'userId',
-                foreignField: '_id',
-                as: 'user',
-              },
-            },
-            { $unwind: '$user' },
-          ],
+          data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
         },
       },
       {
@@ -139,8 +127,8 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, list
       },
     ];
 
-    const data = await wordPressProduct.aggregate(pipeline).exec();
-    return lean ? data : data.map((doc) => doc.toObject());
+    const [result] = await wordPressProduct.aggregate(pipeline).exec();
+    return lean ? result.data : result.data.map((doc) => doc.toObject());
   }
   if (listType === 'error') {
     const data = await wordPressProduct.find(filter, project, options).populate('userId').lean(lean);
