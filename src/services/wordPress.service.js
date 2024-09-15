@@ -128,7 +128,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, list
     ];
 
     const [result] = await wordPressProduct.aggregate(pipeline).exec();
-    return lean ? result.data : result.data.map((doc) => doc.toObject());
+    return lean ? result : result.data.map((doc) => doc.toObject());
   }
   if (listType === 'error') {
     const data = await wordPressProduct.find(filter, project, options).populate('userId').lean(lean);
