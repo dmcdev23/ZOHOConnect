@@ -109,9 +109,43 @@ const findCustomer = async (filter, lean = true, project = {}, options = {}) => 
   return data;
 };
 
-const findProduct = async (filter, lean = true, project = {}, options = {}) => {
-  const data = await wordPressProduct.find(filter, project, options).populate('userId').lean(lean);
-  return data;
+const findProduct = async (filter, lean = true, project = {}, options = {}, listType = 'item', orderSyncDetail) => {
+  if (listType === 'item') {
+    const pipeline = [
+      { $match: filter },
+      {
+        $facet: {
+          metadata: [{ $count: 'totalRecords' }],
+          data: [
+            { $skip: options.page * options.limit },
+            { $limit: options.limit || 5 },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'userId',
+                foreignField: '_id',
+                as: 'user',
+              },
+            },
+            { $unwind: '$user' },
+          ],
+        },
+      },
+      {
+        $project: {
+          data: 1,
+          total: { $arrayElemAt: ['$metadata.totalRecords', 0] },
+        },
+      },
+    ];
+
+    const data = await wordPressProduct.aggregate(pipeline).exec();
+    return lean ? data : data.map((doc) => doc.toObject());
+  }
+  if (listType === 'error') {
+    const data = await wordPressProduct.find(filter, project, options).populate('userId').lean(lean);
+    return data;
+  }
 };
 
 const getCustomerCount = async (filter) => {
@@ -167,7 +201,7 @@ const createCustomer = async (req, data) => {
           userId: req.user._id,
           id: ele.id,
           licenceNumber: ObjectId(req.query.licenceNumber),
-          isSyncedToZoho: false
+          isSyncedToZoho: false,
         },
       },
       upsert: true,
@@ -262,12 +296,11 @@ const createProduct = async (req, data) => {
   const chunkSize = 500; // Adjust this size as needed
   const productChunks = [];
 
-  console.log("Total data length:", data.length);
   const result = await wordPressProduct.deleteMany({
     userId: req.user._id,
     licenceNumber: ObjectId(req.query.licenceNumber),
   });
-  
+
   // Create chunks of data
   for (let i = 0; i < data.length; i += chunkSize) {
     const chunk = data.slice(i, i + chunkSize).map((ele) => {
@@ -288,7 +321,7 @@ const createProduct = async (req, data) => {
             userId: req.user._id,
             id: sanitizedData.id,
             licenceNumber: ObjectId(req.query.licenceNumber),
-            isSyncedToZoho: false
+            isSyncedToZoho: false,
           },
         },
       };
@@ -296,25 +329,21 @@ const createProduct = async (req, data) => {
     productChunks.push(chunk);
   }
 
-  console.log("Number of chunks:", productChunks.length);
-
   // Process each chunk sequentially
   for (const chunk of productChunks) {
-    
     try {
       const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(chunk);
-      console.log("Bulk insert result:", wordPressProductBulkInsert);
+      console.log('Bulk insert result:', wordPressProductBulkInsert);
     } catch (error) {
-      console.error("Bulk insert error:", error);
+      console.error('Bulk insert error:', error);
       if (error.writeErrors) {
         error.writeErrors.forEach((writeError) => {
-          console.error("Failed operation:", writeError.err);
+          console.error('Failed operation:', writeError.err);
         });
       }
     }
   }
 };
-
 
 const bulkWrite = async (pipeline) => {
   const data = await wordPressCustomer.bulkWrite(pipeline);

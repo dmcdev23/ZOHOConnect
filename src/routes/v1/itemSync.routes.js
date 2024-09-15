@@ -4,12 +4,8 @@ const router = express.Router();
 const { ItemSyncController } = require('../../controllers');
 
 const validateItemSync = [
-  check('syncMethod')
-    .isIn(['ITEM', 'SKU', 'BARCODE'])
-    .withMessage('syncMethod must be one of ITEM, SKU, or BARCODE'),
-  check('itemSyncSource')
-    .isIn(['ZOHO', 'WOOCOMMERCE'])
-    .withMessage('itemSyncSource must be one of ZOHO or WOOCOMMERCE'),
+  check('syncMethod').isIn(['ITEM', 'SKU', 'BARCODE']).withMessage('syncMethod must be one of ITEM, SKU, or BARCODE'),
+  check('itemSyncSource').isIn(['ZOHO', 'WOOCOMMERCE']).withMessage('itemSyncSource must be one of ZOHO or WOOCOMMERCE'),
   check('itemSyncIntermediateDestination')
     .isIn(['PHYGITAL_COMMERCE'])
     .withMessage('itemSyncIntermediateDestination must be PHYGITAL_COMMERCE'),
@@ -51,7 +47,7 @@ const validateItemSync = [
         }
       }
       return true;
-    })
+    }),
 ];
 
 // Routes for ItemSync
