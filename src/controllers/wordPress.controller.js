@@ -70,7 +70,7 @@ const syncProduct = catchAsync(async (req, res) => {
       consumerSecret: licence.WPSecret,
       version: 'wc/v3',
     });
-     
+
     await fetchFromGeneric(WooCommerce, [], req, 'products', res);
   } catch (e) {
     console.error(e);
@@ -106,7 +106,8 @@ const getProduct = catchAsync(async (req, res) => {
       { licenceNumber: ObjectId(req.query.licenceNumber) },
       true,
       {},
-      { page: req.query.page, limit: req.query.limit }
+      { page: req.query.page, limit: req.query.limit },
+      req.query.listType
     );
     res.status(httpStatus.OK).send(licence);
   } catch (e) {
@@ -889,7 +890,6 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         page: i,
         exclude: IdsToExclude.map((ele) => ele.id),
       });
-       console.log("orders?.status", orders.headers['x-wp-total'])
       if (orders?.status === httpStatus.OK) {
         responseArray.push(...orders.data);
         await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, orders.headers['x-wp-total']);
@@ -900,13 +900,12 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       } else {
         responseArray.push(...orders.data);
       }
-     
+
       if (orders?.data?.length < limit) {
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
         break;
       }
     }
-    console.log(" serviceMap[getWhat]",getWhat)
     await serviceMap[getWhat](req, responseArray);
   } catch (e) {
     await updateSyncHistory(req.query.licenceNumber, 'failed', 0);

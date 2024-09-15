@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const { licenceService } = require('../services');
 
-// Get all ItemSyncSetup 
+// Get all ItemSyncSetup
 exports.getItemSyncs = async (req, res) => {
   const orderSyncs = await ItemSyncSetup.find();
   return orderSyncs;
@@ -11,7 +11,7 @@ exports.getItemSyncs = async (req, res) => {
 
 // Get a single Item Sync by ID
 exports.getItemSyncById = async (req, res) => {
-  const orderSync = await ItemSyncSetup.findOne({ "licenseNumber": ObjectId(req?.params?.id) });
+  const orderSync = await ItemSyncSetup.findOne({ licenseNumber: ObjectId(req?.params?.id) });
   return orderSync;
 };
 
@@ -22,21 +22,17 @@ exports.createItemSync = async (data) => {
     try {
       const license = await licenceService.findOne({ _id: ObjectId(licenseNumber) });
       if (license) {
-        return await ItemSyncSetup.findByIdAndUpdate(
-          licenseNumber,
-          data,
-          { new: true, upsert: true }
-        );
+        return await ItemSyncSetup.findByIdAndUpdate(licenseNumber, data, { new: true, upsert: true });
       } else {
-        return "Invalid License Number";
+        return 'Invalid License Number';
       }
     } catch (error) {
       // Handle potential errors, such as database issues
       console.error('Error:', error);
-      return "An error occurred while processing the request";
+      return 'An error occurred while processing the request';
     }
   } else {
-    return "License number is required";
+    return 'License number is required';
   }
 };
 

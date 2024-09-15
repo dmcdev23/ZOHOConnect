@@ -16,6 +16,16 @@ const getOrders = {
   }),
 };
 
+const getProducts = {
+  query: Joi.object().keys({
+    licenceNumber: Joi.string().required(),
+    organization_id: Joi.string().optional(),
+    page: Joi.number().default(1),
+    limit: Joi.number().default(10),
+    listType: Joi.string().valid('item', 'error', 'published', 'blocked').optional(),
+  }),
+};
+
 const syncContacts = {
   query: Joi.object().keys({
     licenceNumber: Joi.string().required(),
@@ -36,4 +46,5 @@ module.exports = {
   updateLicence,
   getOrders,
   syncContacts,
+  getProducts,
 };
