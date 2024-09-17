@@ -20,6 +20,18 @@ const ItemSyncSetupSchema = mongoose.Schema(
             enum: ['ITEM', 'SKU', 'BARCODE'],
             required: true
         },
+        itemSync: {
+            type: Boolean,
+            default: false,
+          },
+          skuSync: {
+            type: Boolean,
+            default: false,
+          },
+          barcodeSync: {
+            type: Boolean,
+            default: false,
+          },
         itemSyncSource: {
             type: String,
             enum: ['ZOHO', 'WOOCOMMERCE'],
