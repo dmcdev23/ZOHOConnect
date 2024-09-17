@@ -115,9 +115,9 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
   let matchConditions;
 
   if (syncParametersFirst === 'id') {
-    matchConditions = [{ [`${syncParametersFirst}`]: { $ne: '' } }];
+    matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
   } else {
-    matchConditions = [{ [`data.${syncParametersFirst}`]: { $ne: '' } }];
+    matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
   }
 
   logger.debug('Primary match conditions:', matchConditions);
@@ -136,7 +136,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     {
       $project: {
         data: 1,
-        total: { $arrayElemAt: ['$metadata.totalRecords', 0] },
+        total: { $ifNull: [{ $arrayElemAt: ['$metadata.totalRecords', 0] }, 0] },
       },
     },
   ];
@@ -144,7 +144,11 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
   logger.debug('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
 
   if (syncParametersFirst === 'id') {
-    matchConditions = [{ [`${syncParametersFirst}`]: { $ne: '' } }];
+    matchConditions = [
+      {
+        $or: [{ [`${syncParametersFirst}`]: { $eq: '' } }, { [`${syncParametersFirst}`]: { $eq: null } }],
+      },
+    ];
   } else {
     matchConditions = [
       {
@@ -169,7 +173,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     {
       $project: {
         data: 1,
-        total: { $arrayElemAt: ['$metadata.totalRecords', 0] },
+        total: { $ifNull: [{ $arrayElemAt: ['$metadata.totalRecords', 0] }, 0] },
       },
     },
   ];
