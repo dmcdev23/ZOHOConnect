@@ -108,7 +108,6 @@ const getProduct = catchAsync(async (req, res) => {
       true,
       {},
       { page: req.query.page, limit: req.query.limit },
-      req.query.listType,
       orderSyncDetail
     );
     res.status(httpStatus.OK).send(licence);

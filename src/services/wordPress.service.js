@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
-const { WordPressModel, wordPressCustomer, wordPressProduct } = require('../models');
+const { WordPressModel, wordPressCustomer, wordPressProduct, ItemSyncSetup } = require('../models');
+const logger = require('../config/logger');
 const ApiError = require('../utils/ApiError');
 
 const { ObjectId } = mongoose.Types;
@@ -109,31 +110,82 @@ const findCustomer = async (filter, lean = true, project = {}, options = {}) => 
   return data;
 };
 
-const findProduct = async (filter, lean = true, project = {}, options = {}, listType = 'item', orderSyncDetail) => {
-  if (listType === 'item') {
-    const pipeline = [
-      { $match: filter },
-      {
-        $facet: {
-          metadata: [{ $count: 'totalRecords' }],
-          data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
-        },
+const findProduct = async (filter, lean = true, project = {}, options = {}, orderSyncDetail) => {
+  const { syncParametersFirst } = orderSyncDetail;
+  let matchConditions;
+
+  if (syncParametersFirst === 'id') {
+    matchConditions = [{ [`${syncParametersFirst}`]: { $ne: '' } }];
+  } else {
+    matchConditions = [{ [`data.${syncParametersFirst}`]: { $ne: '' } }];
+  }
+
+  logger.debug('Primary match conditions:', matchConditions);
+
+  const primaryPipeline = [
+    {
+      $match: { $and: matchConditions },
+    },
+    { $match: filter },
+    {
+      $facet: {
+        metadata: [{ $count: 'totalRecords' }],
+        data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
       },
+    },
+    {
+      $project: {
+        data: 1,
+        total: { $arrayElemAt: ['$metadata.totalRecords', 0] },
+      },
+    },
+  ];
+
+  logger.debug('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
+
+  if (syncParametersFirst === 'id') {
+    matchConditions = [{ [`${syncParametersFirst}`]: { $ne: '' } }];
+  } else {
+    matchConditions = [
       {
-        $project: {
-          data: 1,
-          total: { $arrayElemAt: ['$metadata.totalRecords', 0] },
-        },
+        $or: [{ [`data.${syncParametersFirst}`]: { $eq: '' } }, { [`data.${syncParametersFirst}`]: { $eq: null } }],
       },
     ];
+  }
 
-    const [result] = await wordPressProduct.aggregate(pipeline).exec();
-    return lean ? result : result.data.map((doc) => doc.toObject());
-  }
-  if (listType === 'error') {
-    const data = await wordPressProduct.find(filter, project, options).populate('userId').lean(lean);
-    return data;
-  }
+  logger.debug('Secondary match conditions:', matchConditions);
+
+  const secondaryPipeline = [
+    {
+      $match: { $and: matchConditions },
+    },
+    { $match: filter },
+    {
+      $facet: {
+        metadata: [{ $count: 'totalRecords' }],
+        data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
+      },
+    },
+    {
+      $project: {
+        data: 1,
+        total: { $arrayElemAt: ['$metadata.totalRecords', 0] },
+      },
+    },
+  ];
+
+  logger.debug('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
+
+  const [primaryResult] = await wordPressProduct.aggregate(primaryPipeline).exec();
+  const [secondaryResult] = await wordPressProduct.aggregate(secondaryPipeline).exec();
+
+  logger.debug('Primary result:', primaryResult);
+  logger.debug('Secondary result:', secondaryResult);
+
+  return {
+    item: lean ? primaryResult : primaryResult.data.map((doc) => doc.toObject()),
+    error: lean ? secondaryResult : secondaryResult.data.map((doc) => doc.toObject()),
+  };
 };
 
 const getCustomerCount = async (filter) => {

@@ -22,7 +22,6 @@ const getProducts = {
     organization_id: Joi.string().optional(),
     page: Joi.number().default(1),
     limit: Joi.number().default(10),
-    listType: Joi.string().valid('item', 'error', 'published', 'blocked').optional(),
   }),
 };
 
