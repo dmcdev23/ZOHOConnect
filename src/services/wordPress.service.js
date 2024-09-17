@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
 const { WordPressModel, wordPressCustomer, wordPressProduct, ItemSyncSetup } = require('../models');
+const logger = require('../config/logger');
 const ApiError = require('../utils/ApiError');
 
 const { ObjectId } = mongoose.Types;
@@ -119,6 +120,8 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     matchConditions = [{ [`data.${syncParametersFirst}`]: { $ne: '' } }];
   }
 
+  logger.debug('Primary match conditions:', matchConditions);
+
   const primaryPipeline = [
     {
       $match: { $and: matchConditions },
@@ -138,6 +141,8 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     },
   ];
 
+  logger.debug('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
+
   if (syncParametersFirst === 'id') {
     matchConditions = [{ [`${syncParametersFirst}`]: { $ne: '' } }];
   } else {
@@ -147,6 +152,8 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
       },
     ];
   }
+
+  logger.debug('Secondary match conditions:', matchConditions);
 
   const secondaryPipeline = [
     {
@@ -167,8 +174,13 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     },
   ];
 
+  logger.debug('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
+
   const [primaryResult] = await wordPressProduct.aggregate(primaryPipeline).exec();
   const [secondaryResult] = await wordPressProduct.aggregate(secondaryPipeline).exec();
+
+  logger.debug('Primary result:', primaryResult);
+  logger.debug('Secondary result:', secondaryResult);
 
   return {
     item: lean ? primaryResult : primaryResult.data.map((doc) => doc.toObject()),
