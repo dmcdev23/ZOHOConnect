@@ -870,6 +870,7 @@ const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
 };
 
 const updateSyncHistory = async (licenceNumber, status, syncedCount, totalCount = undefined) => {
+  console.log("call updateSyncHistory")
   const data = await syncHistoryService.createOrUpdateSyncHistory(ObjectId(licenceNumber), {
     status,
     syncedCount,
@@ -911,9 +912,9 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     }
     await serviceMap[getWhat](req, responseArray);
   } catch (e) {
-    await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
+  //  await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
     console.log(e);
-    throw e;
+   // throw e;
   }
 };
 

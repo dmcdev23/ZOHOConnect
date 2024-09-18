@@ -8,7 +8,7 @@ const { SyncHistory } = require('../models');
  */
 const createOrUpdateSyncHistory = async (licenseNumber, syncData) => {
   let syncHistory = await SyncHistory.findOne({ licenseNumber });
-
+  try{
   if (syncHistory) {
     // Update existing document
     Object.assign(syncHistory, syncData);
@@ -20,6 +20,10 @@ const createOrUpdateSyncHistory = async (licenseNumber, syncData) => {
   }
 
   return syncHistory;
+}
+catch(err){
+  console.log("err  createOrUpdateSyncHistory" + err)
+}
 };
 
 const getSyncHistory = async (licenseNumber) => {
