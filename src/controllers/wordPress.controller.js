@@ -894,7 +894,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         page: i,
         exclude: IdsToExclude.map((ele) => ele.id),
       });
-      console.log("product response" ,orders)
+//console.log("product response" ,orders)
       if (orders?.status === httpStatus.OK) {
         responseArray.push(...orders.data);
         await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, orders.headers['x-wp-total']);
