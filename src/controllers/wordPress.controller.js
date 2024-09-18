@@ -888,7 +888,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     const limit = 50;
     let sendResponse = true;
   console.log("IdsToExclude", IdsToExclude)
-    for (let i = 1; ; i++) {
+    for (let i = 1; i <= 10 ; i++) {
       const orders = await WooCommerce.get(getWhat, {
         per_page: limit,
         page: 1,
@@ -906,10 +906,10 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         responseArray.push(...orders.data);
       }
 
-      // if (orders?.data?.length < limit) {
-      //   await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
-      //   break;
-      // }
+      if (orders?.data?.length < limit) {
+        await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
+        break;
+      }
      
     }
     await serviceMap[getWhat](req, responseArray);
