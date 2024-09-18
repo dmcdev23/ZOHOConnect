@@ -894,6 +894,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         page: i,
         exclude: IdsToExclude.map((ele) => ele.id),
       });
+      console.log("product response" ,orders)
       if (orders?.status === httpStatus.OK) {
         responseArray.push(...orders.data);
         await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, orders.headers['x-wp-total']);
@@ -909,11 +910,12 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
         break;
       }
+      break;
     }
     await serviceMap[getWhat](req, responseArray);
   } catch (e) {
   //  await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
-    console.log(e);
+    console.log("error fetchFromGeneric", e);
    // throw e;
   }
 };
