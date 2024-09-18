@@ -33,14 +33,14 @@ const syncOrders = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send({ msg: 'Order sync in progress' });
   } catch (e) {
     console.error(e);
-    res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
-      !!e?.response
-        ? {
-            statusText: e.response.statusText,
-            data: e.response.data,
-          }
-        : e
-    );
+    // res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
+    //   !!e?.response
+    //     ? {
+    //         statusText: e.response.statusText,
+    //         data: e.response.data,
+    //       }
+    //     : e
+    // );
   }
 });
 
@@ -74,7 +74,7 @@ const syncProduct = catchAsync(async (req, res) => {
     await fetchFromGeneric(WooCommerce, [], req, 'products', res);
   } catch (e) {
     console.error(e);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
+   // res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
   }
 });
 
@@ -810,6 +810,7 @@ const syncProductToZohoByProductId = catchAsync(async (req, res) => {
           {
             $set: {
               isSyncedToZoho: true,
+              isActive: true,
               zohoResponse: {
                 config: config,
                 response: data,
@@ -823,6 +824,7 @@ const syncProductToZohoByProductId = catchAsync(async (req, res) => {
           {
             $set: {
               isSyncedToZoho: false,
+              isActive: false,
               zohoResponse: {
                 config: config,
                 response: data,

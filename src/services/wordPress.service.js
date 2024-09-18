@@ -310,6 +310,7 @@ const createProduct = async (req, data) => {
             id: sanitizedData.id,
             licenceNumber: ObjectId(req.query.licenceNumber),
             isSyncedToZoho: false,
+            isActive: true
           },
         },
       };
