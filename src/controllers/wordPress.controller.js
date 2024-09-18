@@ -891,7 +891,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     for (let i = 1; i <= 10 ; i++) {
       const orders = await WooCommerce.get(getWhat, {
         per_page: limit,
-        page: 1,
+        page: i,
        // exclude: IdsToExclude.map((ele) => ele.id),
       });
    //console.log("product response" ,orders)
