@@ -885,7 +885,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       products: wordPressService.createProduct,
     };
     const responseArray = [];
-    const limit = 2000;
+    const limit = 100;
     let sendResponse = true;
 
    // for (let i = 1; ; i++) {
@@ -894,7 +894,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         page: 1,
         exclude: IdsToExclude.map((ele) => ele.id),
       });
-//console.log("product response" ,orders)
+   //console.log("product response" ,orders)
       if (orders?.status === httpStatus.OK) {
         responseArray.push(...orders.data);
         await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, orders.headers['x-wp-total']);
