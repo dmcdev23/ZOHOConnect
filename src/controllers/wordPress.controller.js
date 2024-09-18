@@ -888,7 +888,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     const limit = 50;
     let sendResponse = true;
 
-    for (let i = 1; ; i++) {
+   // for (let i = 1; ; i++) {
       const orders = await WooCommerce.get(getWhat, {
         per_page: limit,
         page: i,
@@ -906,12 +906,12 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         responseArray.push(...orders.data);
       }
 
-      if (orders?.data?.length < limit) {
-        await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
-        break;
-      }
-      break;
-    }
+      // if (orders?.data?.length < limit) {
+      //   await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
+      //   break;
+      // }
+     
+  //  }
     await serviceMap[getWhat](req, responseArray);
   } catch (e) {
   //  await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
