@@ -887,12 +887,12 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     const responseArray = [];
     const limit = 50;
     let sendResponse = true;
-
-   // for (let i = 1; ; i++) {
+  console.log("IdsToExclude", IdsToExclude)
+    for (let i = 1; ; i++) {
       const orders = await WooCommerce.get(getWhat, {
         per_page: limit,
         page: 1,
-        exclude: IdsToExclude.map((ele) => ele.id),
+       // exclude: IdsToExclude.map((ele) => ele.id),
       });
    //console.log("product response" ,orders)
       if (orders?.status === httpStatus.OK) {
@@ -911,7 +911,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       //   break;
       // }
      
-  //  }
+    }
     await serviceMap[getWhat](req, responseArray);
   } catch (e) {
   //  await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
