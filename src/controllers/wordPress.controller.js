@@ -914,8 +914,8 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         break;
       }
       if (i < 10) {
-        console.log(`Sleeping for 1 minute before fetching the next page...`);
-        await sleep(60000); // Wait for 1 minute before next API call
+        console.log(`Sleeping for 10 seconds before fetching the next page...`);
+        await sleep(10000); // 10-second delay
       }
        i++;
     }
