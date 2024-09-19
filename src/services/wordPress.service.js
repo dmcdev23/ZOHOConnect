@@ -339,7 +339,7 @@ const sanitizeKeys = (obj) => {
 const createProduct = async (req, data) => {
   const chunkSize = 500; // Adjust this size as needed
   const productChunks = [];
-console.log("call createProduct",  req.user._id, req.query.licenceNumber)
+  console.log("call createProduct",  req.user._id, req.query.licenceNumber)
   const result = await wordPressProduct.deleteMany({
     userId: req.user._id,
     licenceNumber: ObjectId(req.query.licenceNumber),
