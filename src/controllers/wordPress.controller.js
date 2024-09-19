@@ -72,6 +72,7 @@ const syncProduct = catchAsync(async (req, res) => {
     });
 
      fetchFromGeneric(WooCommerce, [], req, 'products', res);
+     res.status(httpStatus.OK).send({ msg: `Product sync in progress` });
   } catch (e) {
     console.error(e);
    // res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
@@ -889,7 +890,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     let sendResponse = true;
   //console.log("IdsToExclude", IdsToExclude)
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    let productCount = 2;
+    let productCount = 3;
     for (let i = 1; i <= productCount; i++) {
       console.log("product loop i", i, productCount)
      const offset = (i - 1) * itemsPerPage + 1;
@@ -900,7 +901,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         offset: offset
        // exclude: IdsToExclude.map((ele) => ele.id),
       });
-      console.log("sync products woocom res", products?.status, products?.statusText);
+      console.log("sync products woocom res", products?.status, products?.statusText, products.data.length);
      // productCount = products.headers['x-wp-total'];
       // if (products?.status === httpStatus.OK) {
       //   productCount = products.headers['x-wp-total'];
@@ -908,7 +909,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       //   responseArray.push(...products.data);
       //   await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, products.headers['x-wp-total']);
       //   if (sendResponse) {
-      //     res.status(httpStatus.OK).send({ msg: `${getWhat.charAt(0).toUpperCase() + getWhat.slice(1)} sync in progress` });
+      //     //res.status(httpStatus.OK).send({ msg: `${getWhat.charAt(0).toUpperCase() + getWhat.slice(1)} sync in progress` });
       //     sendResponse = false;
       //   }
       // } else {
