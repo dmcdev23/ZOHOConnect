@@ -901,7 +901,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
        // exclude: IdsToExclude.map((ele) => ele.id),
       });
       console.log("sync products woocom res", products?.status, products?.statusText);
-     
+      productCount = products.headers['x-wp-total'];
       // if (products?.status === httpStatus.OK) {
       //   productCount = products.headers['x-wp-total'];
       //   console.log("productCount", productCount)
