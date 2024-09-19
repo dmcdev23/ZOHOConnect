@@ -71,7 +71,7 @@ const syncProduct = catchAsync(async (req, res) => {
       version: 'wc/v3',
     });
 
-     fetchFromGeneric(WooCommerce, [], req, 'products', res);
+     await fetchFromGeneric(WooCommerce, [], req, 'products', res);
      res.status(httpStatus.OK).send({ msg: `Product sync in progress` });
   } catch (e) {
     console.error(e);
