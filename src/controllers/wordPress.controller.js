@@ -890,7 +890,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     let sendResponse = true;
   //console.log("IdsToExclude", IdsToExclude)
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    let productCount = 3;
+    let productCount = 1;
     for (let i = 1; i <= productCount; i++) {
       console.log("product loop i", i, productCount)
      const offset = (i - 1) * itemsPerPage + 1;
@@ -902,7 +902,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
        // exclude: IdsToExclude.map((ele) => ele.id),
       });
       console.log("sync products woocom res", products?.status, products?.statusText, products.data.length);
-     // productCount = products.headers['x-wp-total'];
+      productCount = products.headers['x-wp-total'];
       // if (products?.status === httpStatus.OK) {
       //   productCount = products.headers['x-wp-total'];
       //   console.log("productCount", productCount)
@@ -916,9 +916,9 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       //   responseArray.push(...products.data);
       // }
 
-      if (products?.data?.length < itemsPerPage) {
+      if (i == itemsPerPage) {
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
-        break;
+      //  break;
       }
       // if (i < itemsPerPage) {
       //   console.log(`Sleeping for 1 seconds before fetching the next page...`);
