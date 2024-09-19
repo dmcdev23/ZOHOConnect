@@ -890,7 +890,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
   //console.log("IdsToExclude", IdsToExclude)
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    for (let i = 1; i <= 10 ; i++) {
+    for (let i = 1; ; i++) {
       console.log("loop i", i)
       const products = await WooCommerce.get(getWhat, {
         per_page: limit,
@@ -913,9 +913,9 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
         break;
       }
-      if (i < 10) {
+      if (i < limit) {
         console.log(`Sleeping for 10 seconds before fetching the next page...`);
-        await sleep(10000); // 10-second delay
+        await sleep(1000); // 10-second delay
       }
        i++;
     }
