@@ -887,34 +887,42 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     const responseArray = [];
     const limit = 50;
     let sendResponse = true;
-  console.log("IdsToExclude", IdsToExclude)
+  //console.log("IdsToExclude", IdsToExclude)
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
     for (let i = 1; i <= 10 ; i++) {
-      const orders = await WooCommerce.get(getWhat, {
+      console.log("loop i", i)
+      const products = await WooCommerce.get(getWhat, {
         per_page: limit,
         page: i,
-       // exclude: IdsToExclude.map((ele) => ele.id),
+        exclude: IdsToExclude.map((ele) => ele.id),
       });
-   //console.log("product response" ,orders)
-      if (orders?.status === httpStatus.OK) {
-        responseArray.push(...orders.data);
-        await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, orders.headers['x-wp-total']);
+     // console.log("product response" ,products.data)
+      if (products?.status === httpStatus.OK) {
+        responseArray.push(...products.data);
+        await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, products.headers['x-wp-total']);
         if (sendResponse) {
           res.status(httpStatus.OK).send({ msg: `${getWhat.charAt(0).toUpperCase() + getWhat.slice(1)} sync in progress` });
           sendResponse = false;
         }
       } else {
-        responseArray.push(...orders.data);
+        responseArray.push(...products.data);
       }
 
-      if (orders?.data?.length < limit) {
+      if (products?.data?.length < limit) {
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
         break;
       }
-     
+      if (i < 10) {
+        console.log(`Sleeping for 1 minute before fetching the next page...`);
+        await sleep(60000); // Wait for 1 minute before next API call
+      }
+       i++;
     }
+    console.log("responseArray length",responseArray.length )
     await serviceMap[getWhat](req, responseArray);
   } catch (e) {
-  //  await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
+    await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
     console.log("error fetchFromGeneric", e);
    // throw e;
   }
