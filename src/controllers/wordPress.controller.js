@@ -71,7 +71,7 @@ const syncProduct = catchAsync(async (req, res) => {
       version: 'wc/v3',
     });
 
-    await fetchFromGeneric(WooCommerce, [], req, 'products', res);
+     fetchFromGeneric(WooCommerce, [], req, 'products', res);
   } catch (e) {
     console.error(e);
    // res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
@@ -885,18 +885,23 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       products: wordPressService.createProduct,
     };
     const responseArray = [];
-    const limit = 10;
+    const itemsPerPage = 20;
     let sendResponse = true;
   //console.log("IdsToExclude", IdsToExclude)
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     let productCount = 1;
     for (let i = 1; i <= productCount; i++) {
       console.log("product loop i", i, productCount)
+     const offset = (i - 1) * itemsPerPage + 1;
+     console.log("offset", offset)
       const products = await WooCommerce.get(getWhat, {
-        per_page: limit,
+        per_page: itemsPerPage, 
         page: i,
-        exclude: IdsToExclude.map((ele) => ele.id),
+        offset: offset
+       // exclude: IdsToExclude.map((ele) => ele.id),
       });
+     // console.log("products res", products);
+     
       if (products?.status === httpStatus.OK) {
         productCount = products.headers['x-wp-total'];
         console.log("productCount", productCount)
@@ -910,11 +915,11 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         responseArray.push(...products.data);
       }
 
-      if (products?.data?.length < limit) {
+      if (products?.data?.length < itemsPerPage) {
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
         break;
       }
-      if (i < limit) {
+      if (i < itemsPerPage) {
         console.log(`Sleeping for 1 seconds before fetching the next page...`);
         await sleep(1000); // 10-second delay
       }
