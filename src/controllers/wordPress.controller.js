@@ -885,20 +885,21 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       products: wordPressService.createProduct,
     };
     const responseArray = [];
-    const limit = 50;
+    const limit = 10;
     let sendResponse = true;
   //console.log("IdsToExclude", IdsToExclude)
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    for (let i = 1; ; i++) {
-      console.log("loop i", i)
+    let productCount = 1;
+    for (let i = 1; i <= productCount; i++) {
+      console.log("product loop i", i, productCount)
       const products = await WooCommerce.get(getWhat, {
         per_page: limit,
         page: i,
         exclude: IdsToExclude.map((ele) => ele.id),
       });
-     // console.log("product response" ,products.data)
       if (products?.status === httpStatus.OK) {
+        productCount = products.headers['x-wp-total'];
+        console.log("productCount", productCount)
         responseArray.push(...products.data);
         await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, products.headers['x-wp-total']);
         if (sendResponse) {
@@ -914,10 +915,10 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         break;
       }
       if (i < limit) {
-        console.log(`Sleeping for 10 seconds before fetching the next page...`);
+        console.log(`Sleeping for 1 seconds before fetching the next page...`);
         await sleep(1000); // 10-second delay
       }
-       i++;
+       
     }
     console.log("responseArray length",responseArray.length )
     await serviceMap[getWhat](req, responseArray);
