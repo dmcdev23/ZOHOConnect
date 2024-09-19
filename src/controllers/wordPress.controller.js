@@ -900,33 +900,33 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         offset: offset
        // exclude: IdsToExclude.map((ele) => ele.id),
       });
-     // console.log("products res", products);
+      console.log("sync products woocom res", products?.status, products?.statusText);
      
-      if (products?.status === httpStatus.OK) {
-        productCount = products.headers['x-wp-total'];
-        console.log("productCount", productCount)
-        responseArray.push(...products.data);
-        await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, products.headers['x-wp-total']);
-        if (sendResponse) {
-          res.status(httpStatus.OK).send({ msg: `${getWhat.charAt(0).toUpperCase() + getWhat.slice(1)} sync in progress` });
-          sendResponse = false;
-        }
-      } else {
-        responseArray.push(...products.data);
-      }
+      // if (products?.status === httpStatus.OK) {
+      //   productCount = products.headers['x-wp-total'];
+      //   console.log("productCount", productCount)
+      //   responseArray.push(...products.data);
+      //   await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, products.headers['x-wp-total']);
+      //   if (sendResponse) {
+      //     res.status(httpStatus.OK).send({ msg: `${getWhat.charAt(0).toUpperCase() + getWhat.slice(1)} sync in progress` });
+      //     sendResponse = false;
+      //   }
+      // } else {
+      //   responseArray.push(...products.data);
+      // }
 
       if (products?.data?.length < itemsPerPage) {
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
         break;
       }
-      if (i < itemsPerPage) {
-        console.log(`Sleeping for 1 seconds before fetching the next page...`);
-        await sleep(1000); // 10-second delay
-      }
+      // if (i < itemsPerPage) {
+      //   console.log(`Sleeping for 1 seconds before fetching the next page...`);
+      //   await sleep(1000); // 10-second delay
+      // }
        
     }
-    console.log("responseArray length",responseArray.length )
-    await serviceMap[getWhat](req, responseArray);
+   // console.log("responseArray length",responseArray.length )
+  //  await serviceMap[getWhat](req, responseArray);
   } catch (e) {
     await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
     console.log("error fetchFromGeneric", e);
