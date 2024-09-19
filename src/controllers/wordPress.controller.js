@@ -890,7 +890,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     let sendResponse = true;
   //console.log("IdsToExclude", IdsToExclude)
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    let productCount = 1;
+    let productCount = 10;
     for (let i = 1; i <= productCount; i++) {
       console.log("product loop i", i, productCount)
      const offset = (i - 1) * itemsPerPage + 1;
@@ -902,7 +902,7 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
        // exclude: IdsToExclude.map((ele) => ele.id),
       });
       console.log("sync products woocom res", products?.status, products?.statusText, products.data.length);
-      productCount = products.headers['x-wp-total'];
+     // productCount = products.headers['x-wp-total'];
       // if (products?.status === httpStatus.OK) {
       //   productCount = products.headers['x-wp-total'];
       //   console.log("productCount", productCount)
