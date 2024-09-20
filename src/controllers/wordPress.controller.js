@@ -970,7 +970,7 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
     let errorArray = [];
     for (let i = 1; i < count / limit + 1; i++) {
       let syncData = await serviceMap[getWhat](
-        { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: { $in: [false, null] } },
+        { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: { $in: [false, null] }, isActive: { $in: [false, null] }  },
         true,
         {},
         { skip: (i - 1) * limit, limit: limit }
