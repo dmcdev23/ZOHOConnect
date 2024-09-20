@@ -889,36 +889,36 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
     const itemsPerPage = 20;
     let sendResponse = true;
   //console.log("IdsToExclude", IdsToExclude)
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    let productCount = 1;
+   // const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    let productCount = 10;
     for (let i = 1; i <= productCount; i++) {
-      console.log("product loop i", i, productCount)
+     // console.log("product loop i", i, productCount)
      const offset = (i - 1) * itemsPerPage + 1;
-     console.log("offset", offset)
+  //   console.log("offset", offset)
       const products = await WooCommerce.get(getWhat, {
         per_page: itemsPerPage, 
         page: i,
         offset: offset
        // exclude: IdsToExclude.map((ele) => ele.id),
       });
-      console.log("sync products woocom res", products?.status, products?.statusText, products.data.length);
-      productCount = products.headers['x-wp-total'];
-      // if (products?.status === httpStatus.OK) {
-      //   productCount = products.headers['x-wp-total'];
-      //   console.log("productCount", productCount)
-      //   responseArray.push(...products.data);
-      //   await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, products.headers['x-wp-total']);
-      //   if (sendResponse) {
-      //     //res.status(httpStatus.OK).send({ msg: `${getWhat.charAt(0).toUpperCase() + getWhat.slice(1)} sync in progress` });
-      //     sendResponse = false;
-      //   }
-      // } else {
-      //   responseArray.push(...products.data);
-      // }
+    //  console.log("sync products woocom res", products?.status, products?.statusText, products.data.length);
+       productCount = products.headers['x-wp-total'];
+      if (products?.status === httpStatus.OK) {
+        productCount = products.headers['x-wp-total'];
+     //   console.log("productCount", productCount)
+        responseArray.push(...products.data);
+        await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, products.headers['x-wp-total']);
+        if (sendResponse) {
+          //res.status(httpStatus.OK).send({ msg: `${getWhat.charAt(0).toUpperCase() + getWhat.slice(1)} sync in progress` });
+          sendResponse = false;
+        }
+      } else {
+        responseArray.push(...products.data);
+      }
 
       if (i == itemsPerPage) {
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
-      //  break;
+       break;
       }
       // if (i < itemsPerPage) {
       //   console.log(`Sleeping for 1 seconds before fetching the next page...`);
@@ -926,8 +926,8 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
       // }
        
     }
-   // console.log("responseArray length",responseArray.length )
-  //  await serviceMap[getWhat](req, responseArray);
+   console.log("responseArray length",responseArray.length )
+   await serviceMap[getWhat](req, responseArray);
   } catch (e) {
     await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
     console.log("error fetchFromGeneric", e);
