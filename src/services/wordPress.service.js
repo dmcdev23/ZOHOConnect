@@ -197,6 +197,11 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
   };
 };
 
+const findProductForSyncItemZoho = async (filter, lean = true, project = {}, options = {}) => {
+  const data = await wordPressProduct.find(filter, project, options).lean(lean);
+  return data;
+};
+
 const getCustomerCount = async (filter) => {
   const data = await wordPressCustomer.count(filter);
   return data;
@@ -520,6 +525,40 @@ const bulkDeleteByLicenseNumber = async (licenceNumber) => {
   return result;
 };
 
+
+const transformItemForSyncProductInZoho = async (products) => {
+  try {
+    const transformMap = (element) => {
+      return {
+        name: element?.data?.name,
+        rate: parseFloat(element?.data?.price),
+        account_id: '1944648000000000486',
+        tax_id: '',
+        tags: [],
+        custom_fields: [],
+        purchase_rate: parseFloat(element?.data?.price),
+        purchase_account_id: '1944648000000000567',
+        item_type: 'inventory',
+        product_type: 'goods',
+        inventory_account_id: '1944648000000000626',
+        initial_stock: element?.data?.stock_quantity,
+        initial_stock_rate: element?.data?.stock_quantity,
+        is_returnable: true,
+        package_details: {
+          weight_unit: 'kg',
+          dimension_unit: 'cm',
+        },
+        unit: 'qty',
+        sku: element?.data?.sku,
+      };
+    };
+
+    return products.map((element) => transformMap(element));
+  } catch (err) {
+    console.log("err transformItemForSyncProductInZoho", err);
+  }
+};
+
 module.exports = {
   findOrder,
   createOrder,
@@ -536,4 +575,6 @@ module.exports = {
   findOrderAggregate,
   getOrderCount,
   bulkDeleteByLicenseNumber,
+  findProductForSyncItemZoho,
+  transformItemForSyncProductInZoho
 };

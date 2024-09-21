@@ -489,6 +489,90 @@ const transformData = async (req, data, transformWhat) => {
     throw e;
   }
 }
+
+
+const syncProductToZoho = async (req, res) =>{
+    try{
+      const getProductInSyncZoho = await wordPressService.getProductCount({
+        licenceNumber: ObjectId(req.query.licenceNumber),
+        isSyncedToZoho: { $in: [false, null] },
+        isActive:  { $in: [true] }
+      });
+      console.log("getProductInSyncZoho", getProductInSyncZoho)
+      const limit = 500;
+      let responseArray = [];
+      let errorArray = [];
+      for (let i = 1; i < getProductInSyncZoho / limit + 1; i++) {
+        let syncItemInZoho = await wordPressService.findProductForSyncItemZoho(
+          { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: { $in: [false, null] }, isActive: { $in: [true] }  },
+          true,
+          {},
+          { skip: (i - 1) * limit, limit: limit }
+        );
+         // console.log("syncItemToZoho", syncItemToZoho)
+  
+        let transformItems = await wordPressService.transformItemForSyncProductInZoho(syncItemInZoho);
+         console.log("transformData", transformData);
+        for (let j = 0; j < transformItems.length; ++j) {
+          req.body = transformItems[j];
+          const response = await postCreateItem(req);
+          console.log("syncData", response.response)
+          if (response && response.status >= 200 && response.status < 300) {
+            let UpdateObject = {
+              updateOne: {
+                filter: { _id: syncItemInZoho[j]._id },
+                update: {
+                  $set: {
+                    isSyncedToZoho: true,
+                  },
+                },
+              },
+            };
+          
+                UpdateObject.updateOne.update.$set = {
+                  item_id: response?.data?.item?.item_id,
+                  zohoResponse: {
+                    config: response?.config,
+                    response: response?.data,
+                  },
+                };
+                responseArray.push(UpdateObject);
+               
+            }
+           
+           else {
+    
+              const productId = syncItemInZoho._id;
+              const { status, statusText, headers, config, data } = response.response;
+               console.log("data._id", syncItemInZoho, data)
+              const updateItem = await wordPressProduct.findOneAndUpdate(
+                {
+                  _id: syncItemInZoho[j]._id,
+                },
+                {
+                  $set: {
+                    zohoResponse: {
+                      config: config,
+                      response: data,
+                    },
+                  },
+                }
+              );
+              console.log('updateItem', updateItem);
+            
+          }
+         // console.log(responseArray);
+        }
+      }
+      if (responseArray) {
+        await wordPressService.bulkWriteItems(responseArray);
+      }
+
+    }catch(err){
+      console.log("getting error on syncProductToZoho: ", err)
+    }
+}
+
 module.exports = {
   createLicence,
   getOrganizations,
@@ -507,5 +591,6 @@ module.exports = {
   postCreateContact,
   transformData,
   postCreateItem,
-  postCreateOrder
+  postCreateOrder,
+  syncProductToZoho
 };
