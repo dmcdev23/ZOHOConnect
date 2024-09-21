@@ -491,14 +491,14 @@ const transformData = async (req, data, transformWhat) => {
 }
 
 
-const syncProductToZoho = async (req, res) =>{
+const syncProductsToZoho = async (req, res) =>{
     try{
       const getProductInSyncZoho = await wordPressService.getProductCount({
         licenceNumber: ObjectId(req.query.licenceNumber),
         isSyncedToZoho: { $in: [false, null] },
         isActive:  { $in: [true] }
       });
-      console.log("getProductInSyncZoho", getProductInSyncZoho)
+     // console.log("getProductInSyncZoho", getProductInSyncZoho)
       const limit = 500;
       let responseArray = [];
       let errorArray = [];
@@ -512,11 +512,11 @@ const syncProductToZoho = async (req, res) =>{
          // console.log("syncItemToZoho", syncItemToZoho)
   
         let transformItems = await wordPressService.transformItemForSyncProductInZoho(syncItemInZoho);
-         console.log("transformData", transformData);
+      //   console.log("transformData", transformData);
         for (let j = 0; j < transformItems.length; ++j) {
           req.body = transformItems[j];
           const response = await postCreateItem(req);
-          console.log("syncData", response.response)
+       //   console.log("syncData", response.response)
           if (response && response.status >= 200 && response.status < 300) {
             let UpdateObject = {
               updateOne: {
@@ -544,7 +544,7 @@ const syncProductToZoho = async (req, res) =>{
     
               const productId = syncItemInZoho._id;
               const { status, statusText, headers, config, data } = response.response;
-               console.log("data._id", syncItemInZoho, data)
+         //      console.log("data._id", syncItemInZoho, data)
               const updateItem = await wordPressProduct.findOneAndUpdate(
                 {
                   _id: syncItemInZoho[j]._id,
@@ -558,7 +558,7 @@ const syncProductToZoho = async (req, res) =>{
                   },
                 }
               );
-              console.log('updateItem', updateItem);
+           //   console.log('updateItem', updateItem);
             
           }
          // console.log(responseArray);
@@ -592,5 +592,5 @@ module.exports = {
   transformData,
   postCreateItem,
   postCreateOrder,
-  syncProductToZoho
+  syncProductsToZoho
 };
