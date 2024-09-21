@@ -71,7 +71,7 @@ const syncProduct = catchAsync(async (req, res) => {
       version: 'wc/v3',
     });
 
-     await fetchFromGeneric(WooCommerce, [], req, 'products', res);
+     await fetchFromGenericWithPagination(WooCommerce, [], req, 'products', res);
      res.status(httpStatus.OK).send({ msg: `Product sync in progress` });
   } catch (e) {
     console.error(e);
@@ -251,7 +251,7 @@ const syncCustomerToZoho = catchAsync(async (req, res) => {
 const syncProductToZoho = catchAsync(async (req, res) => {
   try {
     if (!req.query.organization_id) res.status(httpStatus.BAD_REQUEST).send({ msg: 'organization_id is required' });
-    await syncToZohoFromGeneric(req, 'createProducts');
+    await ZOHOController.syncProductToZoho(req, res);
     //console.log("synProductRes", synProductRes)
     res.status(httpStatus.OK).send({ msg: 'Product publish in progress' });
   } catch (e) {
@@ -849,6 +849,7 @@ const syncProductToZohoByProductId = catchAsync(async (req, res) => {
   }
 });
 
+
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
   const responseArray = [];
   const limit = 100;
@@ -879,7 +880,7 @@ const updateSyncHistory = async (licenceNumber, status, syncedCount, totalCount 
   });
 };
 
-const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'customers', res) => {
+const fetchFromGenericWithPagination = async (WooCommerce, IdsToExclude, req, getWhat = 'customers', res) => {
   try {
     const serviceMap = {
       customers: wordPressService.createCustomer,
@@ -934,6 +935,40 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
    // throw e;
   }
 };
+
+const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'customers') => {
+  try{
+    {
+      const serviceMap = {
+        customers: wordPressService.createCustomer,
+        products: wordPressService.createProduct,
+      }
+      const responseArray = [];
+      const limit = 100;
+      for (let i = 1; ; i++) {
+        console.log(i,limit);
+        const orders = await WooCommerce.get(getWhat, {
+          per_page: limit,
+          page: i,
+          exclude: IdsToExclude.map((ele) => ele.id)
+        });
+        if (orders.status === httpStatus.OK) {
+          console.log(orders.data);
+          await serviceMap[getWhat](req, orders.data);
+          responseArray.concat(orders.data);
+        } else {
+          responseArray.concat(orders.data);
+        }
+        if (orders.data.length < limit) {
+          break;
+        }
+      }
+    }
+  }catch (e) {
+    console.log(e);
+    throw e;
+  }
+}
 
 const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
   try {
