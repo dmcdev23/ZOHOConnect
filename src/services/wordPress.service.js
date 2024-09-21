@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { WordPressModel, wordPressCustomer, wordPressProduct, ItemSyncSetup } = require('../models');
 const logger = require('../config/logger');
 const ApiError = require('../utils/ApiError');
+const { ErrorTypes } = require('./constant');
 
 const { ObjectId } = mongoose.Types;
 
@@ -167,7 +168,11 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     {
       $facet: {
         metadata: [{ $count: 'totalRecords' }],
-        data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
+        data: [
+          { $skip: options.page * options.limit },
+          { $limit: options.limit || 5 },
+          { $addFields: { error: ErrorTypes[syncParametersFirst] } },
+        ],
       },
     },
     {
