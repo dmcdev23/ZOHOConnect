@@ -1089,6 +1089,17 @@ const getSyncHistory = async (req, res) => {
   res.status(httpStatus.OK).send({ syncHistory });
 };
 
+const blockProducts = async (req, res) => {
+  try {
+    const { productIds } = req.body;
+    await wordPressProduct.updateMany({ _id: { $in: productIds } }, { $set: { isActive: true } });
+    res.status(httpStatus.OK).send({ msg: 'Products blocked successfully' });
+  } catch (e) {
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Error blocking products', error: e.message });
+    throw e;
+  }
+};
+
 module.exports = {
   syncOrders,
   linkLicence,
@@ -1104,4 +1115,5 @@ module.exports = {
   syncOrderToZohoByOrderId,
   syncProductToZohoByProductId,
   getSyncHistory,
+  blockProducts,
 };

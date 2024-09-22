@@ -21,7 +21,8 @@ const wordPressProductSchema = mongoose.Schema(
     isSyncedToZoho: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     item_id: { type: String },
-    zohoResponse: { type: mongoose.Schema.Types.Mixed }
+    zohoResponse: { type: mongoose.Schema.Types.Mixed },
+    isActive: { type: Boolean, default: true },
   },
   {
     timestamps: true,
