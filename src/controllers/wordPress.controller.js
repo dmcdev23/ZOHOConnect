@@ -1037,7 +1037,7 @@ const getSyncHistory = async (req, res) => {
 const blockProducts = async (req, res) => {
   try {
     const { productIds } = req.body;
-    const product = await wordPressProduct.updateMany({ _id: { $in: productIds } }, { $set: { isActive: true } });
+    const product = await wordPressProduct.updateMany({ _id: { $in: productIds } }, { $set: { isActive: false } });
     if (product) {
       res.status(httpStatus.OK).send({ msg: 'Products blocked successfully' });
     } else {
