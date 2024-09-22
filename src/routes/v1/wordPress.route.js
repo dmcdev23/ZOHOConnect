@@ -58,4 +58,6 @@ router
   .route('/syncProductToZohoByProductId')
   .get(auth('user'), licenceValidator, wordPressController.syncProductToZohoByProductId);
 
+router.route('/blockProducts').post(auth('user'), wordPressController.blockProducts);
+
 module.exports = router;

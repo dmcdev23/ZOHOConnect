@@ -20,7 +20,8 @@ const wordPressProductSchema = mongoose.Schema(
     licenceNumber: { type: ObjectId, required: true, ref: 'licences' },
     isSyncedToZoho: { type: Boolean, default: false },
     item_id: { type: String },
-    zohoResponse: { type: mongoose.Schema.Types.Mixed }
+    zohoResponse: { type: mongoose.Schema.Types.Mixed },
+    isActive: { type: Boolean, default: true },
   },
   {
     timestamps: true,
