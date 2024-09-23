@@ -129,6 +129,9 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     },
     { $match: filter },
     {
+      $match: { isActive: true },
+    },
+    {
       $facet: {
         metadata: [{ $count: 'totalRecords' }],
         data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
@@ -166,6 +169,9 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     },
     { $match: filter },
     {
+      $match: { isActive: true },
+    },
+    {
       $facet: {
         metadata: [{ $count: 'totalRecords' }],
         data: [
@@ -185,8 +191,27 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
 
   logger.debug('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
 
+  const blockListPipeline = [
+    {
+      $match: { isActive: false },
+    },
+    {
+      $facet: {
+        metadata: [{ $count: 'totalRecords' }],
+        data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
+      },
+    },
+    {
+      $project: {
+        data: 1,
+        total: { $ifNull: [{ $arrayElemAt: ['$metadata.totalRecords', 0] }, 0] },
+      },
+    },
+  ];
+
   const [primaryResult] = await wordPressProduct.aggregate(primaryPipeline).exec();
   const [secondaryResult] = await wordPressProduct.aggregate(secondaryPipeline).exec();
+  const [blockListResult] = await wordPressProduct.aggregate(blockListPipeline).exec();
 
   logger.debug('Primary result:', primaryResult);
   logger.debug('Secondary result:', secondaryResult);
@@ -194,6 +219,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
   return {
     item: lean ? primaryResult : primaryResult.data.map((doc) => doc.toObject()),
     error: lean ? secondaryResult : secondaryResult.data.map((doc) => doc.toObject()),
+    block: lean ? blockListResult : blockListResult.data.map((doc) => doc.toObject()),
   };
 };
 
