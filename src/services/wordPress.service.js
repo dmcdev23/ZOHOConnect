@@ -348,19 +348,24 @@ const sanitizeKeys = (obj) => {
 
 const createProduct = async (req, data) => {
   const chunkSize = 500; // Adjust this size as needed
-  const productChunks = [];
-  console.log("call createProduct",  req.user._id, req.query.licenceNumber)
-  const result = await wordPressProduct.deleteMany({
+  console.log("call createProduct", req.user._id, req.query.licenceNumber);
+
+  // Clear previous products
+  await wordPressProduct.deleteMany({
     userId: req.user._id,
     licenceNumber: ObjectId(req.query.licenceNumber),
   });
 
-  // Create chunks of data
   for (let i = 0; i < data.length; i += chunkSize) {
-    const chunk = data.slice(i, i + chunkSize).map((ele) => {
+    // Ensure productInserts is correctly initialized as an array
+    let productInserts = [];
+
+    const chunk = data.slice(i, i + chunkSize).flatMap((ele) => {
       // Sanitize the ele data before inserting
       const sanitizedData = sanitizeKeys(ele);
-      return {
+
+      // Insert the parent product
+      productInserts.push({
         insertOne: {
           document: {
             data: {
@@ -376,19 +381,48 @@ const createProduct = async (req, data) => {
             id: sanitizedData.id,
             licenceNumber: ObjectId(req.query.licenceNumber),
             isSyncedToZoho: false,
-            isActive: true
+            parentId: "",
+            isActive: true,
           },
         },
-      };
-    });
-    productChunks.push(chunk);
-  }
+      });
 
-  // Process each chunk sequentially
-  for (const chunk of productChunks) {
+      // Insert each product variation
+      if (sanitizedData.product_variations.length > 0) {
+        sanitizedData.product_variations.forEach((variation) => {
+          productInserts.push({
+            insertOne: {
+              document: {
+                data: {
+                  name: variation?.name || `${sanitizedData.name} - Variation`,
+                  price: Number(variation?.sale_price),
+                  stock_quantity: variation?.stock,
+                  sku: variation?.sku,
+                  categories: variation?.categories || sanitizedData.categories,
+                  images: variation?.images || sanitizedData.images,
+                  wp_data: variation, // Assuming each variation contains nested data
+                },
+                userId: req.user._id,
+                id: variation?.id,
+                licenceNumber: ObjectId(req.query.licenceNumber),
+                isSyncedToZoho: false,
+                parentId: sanitizedData.id, // Link to parent product
+                isActive: true,
+              },
+            },
+          });
+        });
+      }
+
+      return productInserts; // Return both parent and variations
+    });
+
+    // Bulk insert for the current chunk
     try {
-      const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(chunk);
-      console.log('Bulk insert result:', wordPressProductBulkInsert);
+      if (productInserts.length > 0) {  // Ensure productInserts is not empty
+        const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(productInserts);
+        console.log('Bulk insert result:', wordPressProductBulkInsert);
+      }
     } catch (error) {
       console.error('Bulk insert error:', error);
       if (error.writeErrors) {
@@ -399,6 +433,130 @@ const createProduct = async (req, data) => {
     }
   }
 };
+
+
+// const createProduct = async (req, data) => {
+//   const chunkSize = 500; // Adjust this size as needed
+//   const productChunks = [];
+//   console.log("call createProduct",  req.user._id, req.query.licenceNumber)
+//   const result = await wordPressProduct.deleteMany({
+//     userId: req.user._id,
+//     licenceNumber: ObjectId(req.query.licenceNumber),
+//   });
+
+//         // Array to hold the insert operations (parent product and its variations)
+//         let insertOperations = [];
+
+//   for (let i = 0; i < data.length; i += chunkSize) {
+//     const chunk = data.slice(i, i + chunkSize).map((ele) => {
+//       // Sanitize the ele data before inserting
+//       const sanitizedData = sanitizeKeys(ele);
+    
+//       // Insert the parent product
+//       insertOperations.push({
+//         insertOne: {
+//           document: {
+//             data: {
+//               name: sanitizedData.name,
+//               price: Number(sanitizedData.price),
+//               stock_quantity: sanitizedData.stock_quantity,
+//               sku: sanitizedData.sku,
+//               categories: sanitizedData.categories,
+//               images: sanitizedData.images,
+//               wp_data: sanitizedData, // Assuming ele contains nested data
+//             },
+//             userId: req.user._id,
+//             id: sanitizedData.id,
+//             licenceNumber: ObjectId(req.query.licenceNumber),
+//             isSyncedToZoho: false,
+//             parentId: "",
+//             isActive: true
+//           },
+//         },
+//       });
+  
+//       // Insert each product variation
+//       if (sanitizedData.product_variations.length > 0) {
+//         console.log("sanitizedData.product_variations")
+//         sanitizedData.product_variations.forEach((variation) => {
+//           insertOperations.push({
+//             insertOne: {
+//               document: {
+//                 data: {
+//                   name: variation?.name || `${sanitizedData.name} - Variation`,
+//                   price: Number(variation.sale_price),
+//                   stock_quantity: variation.stock,
+//                   sku: variation.sku,
+//                   categories: variation?.categories,
+//                   images: variation?.images,
+//                   wp_data: sanitizedData, // Assuming each variation contains nested data
+//                 },
+//                 userId: req.user._id,
+//                 id: variation.id,
+//                 licenceNumber: ObjectId(req.query.licenceNumber),
+//                 isSyncedToZoho: false,
+//                 parentId:sanitizedData.id,
+//                 isActive: true
+//               },
+//             },
+//           });
+//         //  console.log("insertOperations", ...insertOperations)
+//           return;
+//         });
+//       }
+//       return insertOperations;
+//     });
+  
+//     // Add all insert operations to the productChunks array
+//     productChunks.push(...insertOperations);
+//   }
+  
+
+//   // Create chunks of data
+//   // for (let i = 0; i < data.length; i += chunkSize) {
+//   //   const chunk = data.slice(i, i + chunkSize).map((ele) => {
+//   //     // Sanitize the ele data before inserting
+//   //     const sanitizedData = sanitizeKeys(ele);
+//   //     return {
+//   //       insertOne: {
+//   //         document: {
+//   //           data: {
+//   //             name: sanitizedData.name,
+//   //             price: Number(sanitizedData.price),
+//   //             stock_quantity: sanitizedData.stock_quantity,
+//   //             sku: sanitizedData.sku,
+//   //             categories: sanitizedData.categories,
+//   //             images: sanitizedData.images,
+//   //             wp_data: sanitizedData, // Assuming ele contains nested data
+//   //           },
+//   //           userId: req.user._id,
+//   //           id: sanitizedData.id,
+//   //           licenceNumber: ObjectId(req.query.licenceNumber),
+//   //           isSyncedToZoho: false,
+//   //           isActive: true
+//   //         },
+//   //       },
+//   //     };
+//   //   });
+//   //   productChunks.push(chunk);
+//   // }
+
+//   // Process each chunk sequentially
+//   for (const product of insertOperations) {
+//     try {
+//   //   console.log("chunk", chunk)
+//      const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(product);
+//      console.log('Bulk insert result:', wordPressProductBulkInsert);
+//     } catch (error) {
+//       console.error('Bulk insert error:', error);
+//       if (error.writeErrors) {
+//         error.writeErrors.forEach((writeError) => {
+//           console.error('Failed operation:', writeError.err);
+//         });
+//       }
+//     }
+//   }
+// };
 
 const bulkWrite = async (pipeline) => {
   const data = await wordPressCustomer.bulkWrite(pipeline);
