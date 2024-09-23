@@ -756,9 +756,10 @@ const syncProductToZohoByProductId = catchAsync(async (req, res) => {
       licenceNumber: licence._id,
       id: { $eq: req.query.productId },
       isSyncedToZoho: false,
+      isActive: true
     });
     if (!product) {
-      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid Product Id' });
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid Product Id OR Blocked Product For Zoho' });
     }
     //  console.log("product", product)
     if (product) {
