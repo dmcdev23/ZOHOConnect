@@ -60,4 +60,6 @@ router
 
 router.route('/blockProducts').post(auth('user'), wordPressController.blockProducts);
 
+router.route('/unblockProducts').post(auth('user'), wordPressController.unblockProducts);
+
 module.exports = router;

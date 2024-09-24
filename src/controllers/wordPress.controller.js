@@ -71,11 +71,11 @@ const syncProduct = catchAsync(async (req, res) => {
       version: 'wc/v3',
     });
 
-     await fetchFromGenericWithPagination(WooCommerce, [], req, 'products', res);
-     res.status(httpStatus.OK).send({ msg: `Product sync in progress` });
+    await fetchFromGenericWithPagination(WooCommerce, [], req, 'products', res);
+    res.status(httpStatus.OK).send({ msg: `Product sync in progress` });
   } catch (e) {
     console.error(e);
-   // res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
+    // res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
   }
 });
 
@@ -756,7 +756,7 @@ const syncProductToZohoByProductId = catchAsync(async (req, res) => {
       licenceNumber: licence._id,
       id: { $eq: req.query.productId },
       isSyncedToZoho: false,
-      isActive: true
+      isActive: true,
     });
     if (!product) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid Product Id OR Blocked Product For Zoho' });
@@ -850,7 +850,6 @@ const syncProductToZohoByProductId = catchAsync(async (req, res) => {
   }
 });
 
-
 const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
   const responseArray = [];
   const limit = 100;
@@ -873,7 +872,7 @@ const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
 };
 
 const updateSyncHistory = async (licenceNumber, status, syncedCount, totalCount = undefined) => {
-  console.log("call updateSyncHistory")
+  console.log('call updateSyncHistory');
   const data = await syncHistoryService.createOrUpdateSyncHistory(ObjectId(licenceNumber), {
     status,
     syncedCount,
@@ -890,24 +889,24 @@ const fetchFromGenericWithPagination = async (WooCommerce, IdsToExclude, req, ge
     const responseArray = [];
     const itemsPerPage = 20;
     let sendResponse = true;
-  //console.log("IdsToExclude", IdsToExclude)
-   // const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    //console.log("IdsToExclude", IdsToExclude)
+    // const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     let productCount = 10;
     for (let i = 1; i <= productCount; i++) {
-     // console.log("product loop i", i, productCount)
-     const offset = (i - 1) * itemsPerPage + 1;
-  //   console.log("offset", offset)
+      // console.log("product loop i", i, productCount)
+      const offset = (i - 1) * itemsPerPage + 1;
+      //   console.log("offset", offset)
       const products = await WooCommerce.get(getWhat, {
-        per_page: itemsPerPage, 
+        per_page: itemsPerPage,
         page: i,
-        offset: offset
-       // exclude: IdsToExclude.map((ele) => ele.id),
+        offset: offset,
+        // exclude: IdsToExclude.map((ele) => ele.id),
       });
-    //  console.log("sync products woocom res", products?.status, products?.statusText, products.data.length);
-       productCount = products.headers['x-wp-total'];
+      //  console.log("sync products woocom res", products?.status, products?.statusText, products.data.length);
+      productCount = products.headers['x-wp-total'];
       if (products?.status === httpStatus.OK) {
         productCount = products.headers['x-wp-total'];
-     //   console.log("productCount", productCount)
+        //   console.log("productCount", productCount)
         responseArray.push(...products.data);
         await updateSyncHistory(req.query.licenceNumber, 'inProgress', responseArray.length, products.headers['x-wp-total']);
         if (sendResponse) {
@@ -920,38 +919,37 @@ const fetchFromGenericWithPagination = async (WooCommerce, IdsToExclude, req, ge
 
       if (i == itemsPerPage) {
         await updateSyncHistory(req.query.licenceNumber, 'completed', responseArray.length);
-       break;
+        break;
       }
       // if (i < itemsPerPage) {
       //   console.log(`Sleeping for 1 seconds before fetching the next page...`);
       //   await sleep(1000); // 10-second delay
       // }
-       
     }
-   console.log("responseArray length",responseArray.length )
-   await serviceMap[getWhat](req, responseArray);
+    console.log('responseArray length', responseArray.length);
+    await serviceMap[getWhat](req, responseArray);
   } catch (e) {
     await updateSyncHistory(req.query.licenceNumber, 'failed', 0);
-    console.log("error fetchFromGeneric", e);
-   // throw e;
+    console.log('error fetchFromGeneric', e);
+    // throw e;
   }
 };
 
 const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'customers') => {
-  try{
+  try {
     {
       const serviceMap = {
         customers: wordPressService.createCustomer,
         products: wordPressService.createProduct,
-      }
+      };
       const responseArray = [];
       const limit = 100;
       for (let i = 1; ; i++) {
-        console.log(i,limit);
+        console.log(i, limit);
         const orders = await WooCommerce.get(getWhat, {
           per_page: limit,
           page: i,
-          exclude: IdsToExclude.map((ele) => ele.id)
+          exclude: IdsToExclude.map((ele) => ele.id),
         });
         if (orders.status === httpStatus.OK) {
           console.log(orders.data);
@@ -965,11 +963,11 @@ const fetchFromGeneric = async (WooCommerce, IdsToExclude, req, getWhat = 'custo
         }
       }
     }
-  }catch (e) {
+  } catch (e) {
     console.log(e);
     throw e;
   }
-}
+};
 
 const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
   try {
@@ -1006,7 +1004,11 @@ const syncToZohoFromGeneric = async (req, getWhat = 'customers') => {
     let errorArray = [];
     for (let i = 1; i < count / limit + 1; i++) {
       let syncData = await serviceMap[getWhat](
-        { licenceNumber: ObjectId(req.query.licenceNumber), isSyncedToZoho: { $in: [false, null] }, isActive: { $in: [false, null] }  },
+        {
+          licenceNumber: ObjectId(req.query.licenceNumber),
+          isSyncedToZoho: { $in: [false, null] },
+          isActive: { $in: [false, null] },
+        },
         true,
         {},
         { skip: (i - 1) * limit, limit: limit }
@@ -1105,6 +1107,21 @@ const blockProducts = async (req, res) => {
   }
 };
 
+const unblockProducts = async (req, res) => {
+  try {
+    const { productIds } = req.body;
+    const product = await wordPressProduct.updateMany({ _id: { $in: productIds } }, { $set: { isActive: true } });
+    if (product) {
+      res.status(httpStatus.OK).send({ msg: 'Products unblocked successfully' });
+    } else {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Error unblocking products' });
+    }
+  } catch (e) {
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Error unblocking products', error: e.message });
+    throw e;
+  }
+};
+
 module.exports = {
   syncOrders,
   linkLicence,
@@ -1121,4 +1138,5 @@ module.exports = {
   syncProductToZohoByProductId,
   getSyncHistory,
   blockProducts,
+  unblockProducts,
 };
