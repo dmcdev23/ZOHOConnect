@@ -104,6 +104,7 @@ const getOrders = catchAsync(async (req, res) => {
 const getProduct = catchAsync(async (req, res) => {
   try {
     const orderSyncDetail = await ItemSyncSetup.findOne({ licenseNumber: ObjectId(req.query.licenceNumber) });
+    console.log("orderSyncDetail", orderSyncDetail)
     const licence = await wordPressService.findProduct(
       { licenceNumber: ObjectId(req.query.licenceNumber) },
       true,
@@ -1122,6 +1123,159 @@ const unblockProducts = async (req, res) => {
   }
 };
 
+
+const syncProductById = catchAsync(async (req, res) => {
+  try { 
+
+    if (!req.query.licenceNumber || !req.body) {
+      return res.status(httpStatus.OK).send({ msg: 'Invalid param pass' });
+    }
+    const { productIds } = req.body;
+    const { licenceNumber  } = req.query;
+    const [licence] = await licenceService.aggregate([
+      { $match: { _id: ObjectId(licenceNumber) } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+    ]);
+
+    if (!licence) {
+      return res.status(httpStatus.NOT_FOUND).send({ msg: 'Licence not found' });
+    }
+
+    req.user._id = licence.user._id;
+     
+    const WooCommerce = new WooCommerceRestApi({
+      url: licence.storeUrl,
+      consumerKey: licence.WPKey,
+      consumerSecret: licence.WPSecret,
+      version: 'wc/v3',
+    });
+     
+    //  productIds.forEach(productId => {
+    // const product = await WooCommerce.get(`products/${productId}`);
+    // if(product){
+    //   //console.log("product", JSON.stringify(product.data))
+   
+    //   if (product.status === httpStatus.OK) {
+    //     await wordPressService.createProduct(req, product.data);
+    //   }
+    // }
+    // });
+
+    for (const productId of productIds) {
+      const product = await WooCommerce.get(`products/${productId}`);
+      
+      if (product && product.status === httpStatus.OK) {
+      //   console.log("productId found", product.data)
+         let productInserts = [];
+        
+         const sanitizedData = sanitizeKeys(product.data);
+
+// Insert the parent product
+productInserts.push({
+  insertOne: {
+    document: {
+      data: {
+        name: sanitizedData.name,
+        price: Number(sanitizedData.price),
+        stock_quantity: sanitizedData.stock_quantity,
+        sku: sanitizedData.sku,
+        categories: sanitizedData.categories,
+        images: sanitizedData.images,
+        wp_data: sanitizedData, // Assuming it contains nested data
+      },
+      userId: req.user._id,
+      id: sanitizedData.id,
+      licenceNumber: ObjectId(req.query.licenceNumber),
+      isSyncedToZoho: false,
+      parentId: "", // Parent product, no parentId
+      isActive: true,
+    },
+  },
+});
+
+// Insert each product variation, if any
+if (sanitizedData.product_variations && sanitizedData.product_variations.length > 0) {
+  sanitizedData.product_variations.forEach((variation) => {
+    productInserts.push({
+      insertOne: {
+        document: {
+          data: {
+            name: variation?.name || `${sanitizedData.name} - Variation`,
+            price: Number(variation?.sale_price),
+            stock_quantity: variation?.stock,
+            sku: variation?.sku,
+            categories: variation?.categories || sanitizedData.categories,
+            images: variation?.images || sanitizedData.images,
+            wp_data: variation, // Assuming each variation contains nested data
+          },
+          userId: req.user._id,
+          id: variation?.id,
+          licenceNumber: ObjectId(req.query.licenceNumber),
+          isSyncedToZoho: false,
+          parentId: sanitizedData.id, // Link to parent product
+          isActive: true,
+        },
+      },
+    });
+  });
+}
+       // Clear previous products
+        await wordPressProduct.deleteMany({
+          userId: req.user._id,
+          licenceNumber: ObjectId(req.query.licenceNumber),
+          $or: [
+            { id: productId },
+            { parentId: productId }
+        ]
+        });
+
+         // Bulk insert for the current chunk
+     try {
+      if (productInserts.length > 0) {  // Ensure productInserts is not empty
+        const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(productInserts);
+       // console.log('Bulk insert result:', wordPressProductBulkInsert);
+      }
+    } catch (error) {
+      console.error('Bulk insert error:', error);
+      if (error.writeErrors) {
+        error.writeErrors.forEach((writeError) => {
+          console.error('Failed operation:', writeError.err);
+        });
+      }
+    }
+
+      }
+   }
+  
+     res.status(httpStatus.OK).send({ msg: `Product sync in progress` });
+  } catch (e) {
+    console.error(e);
+   // res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
+  }
+});
+
+
+const sanitizeKeys = (obj) => {
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeKeys);
+  } else if (typeof obj === 'object' && obj !== null) {
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+      const sanitizedKey = key.replace(/\./g, '_'); // Replace periods with underscores
+      acc[sanitizedKey] = sanitizeKeys(value);
+      return acc;
+    }, {});
+  }
+  return obj;
+};
+
 module.exports = {
   syncOrders,
   linkLicence,
@@ -1139,4 +1293,5 @@ module.exports = {
   getSyncHistory,
   blockProducts,
   unblockProducts,
+  syncProductById
 };
