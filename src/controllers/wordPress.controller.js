@@ -104,6 +104,7 @@ const getOrders = catchAsync(async (req, res) => {
 const getProduct = catchAsync(async (req, res) => {
   try {
     const orderSyncDetail = await ItemSyncSetup.findOne({ licenseNumber: ObjectId(req.query.licenceNumber) });
+    console.log("orderSyncDetail", orderSyncDetail)
     const licence = await wordPressService.findProduct(
       { licenceNumber: ObjectId(req.query.licenceNumber) },
       true,
@@ -1105,6 +1106,92 @@ const blockProducts = async (req, res) => {
   }
 };
 
+const syncProductById = catchAsync(async (req, res) => {
+  try {
+
+    if (!req.query.licenceNumber || !req.query.productId) {
+      return res.status(httpStatus.OK).send({ msg: 'Invalid param pass' });
+    }
+
+    const { licenceNumber, productId  } = req.query;
+    const [licence] = await licenceService.aggregate([
+      { $match: { _id: ObjectId(licenceNumber) } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+    ]);
+
+    if (!licence) {
+      return res.status(httpStatus.NOT_FOUND).send({ msg: 'Licence not found' });
+    }
+
+    req.user._id = licence.user._id;
+     
+    const WooCommerce = new WooCommerceRestApi({
+      url: licence.storeUrl,
+      consumerKey: licence.WPKey,
+      consumerSecret: licence.WPSecret,
+      version: 'wc/v3',
+    });
+
+    const product = await WooCommerce.get(`products/${productId}`);
+    if(product){
+      //console.log("product", JSON.stringify(product.data))
+   
+      if (product.status === httpStatus.OK) {
+        await wordPressService.createProduct(req, product.data);
+      }
+
+    }
+     res.status(httpStatus.OK).send({ msg: `Product sync in progress` });
+  } catch (e) {
+    console.error(e);
+   // res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
+  }
+});
+
+
+// const syncProductById = async (WooCommerce, IdsToExclude, req, getWhat = 'customers') => {
+//   try{
+//     {
+//       const serviceMap = {
+//         customers: wordPressService.createCustomer,
+//         products: wordPressService.createProduct,
+//       }
+//       const responseArray = [];
+//       const limit = 100;
+//       for (let i = 1; ; i++) {
+//         console.log(i,limit);
+//         const orders = await WooCommerce.get(getWhat, {
+//           per_page: limit,
+//           page: i,
+//           exclude: IdsToExclude.map((ele) => ele.id)
+//         });
+//         if (orders.status === httpStatus.OK) {
+//           console.log(orders.data);
+//           await serviceMap[getWhat](req, orders.data);
+//           responseArray.concat(orders.data);
+//         } else {
+//           responseArray.concat(orders.data);
+//         }
+//         if (orders.data.length < limit) {
+//           break;
+//         }
+//       }
+//     }
+//   }catch (e) {
+//     console.log(e);
+//     throw e;
+//   }
+// }
+
+
 module.exports = {
   syncOrders,
   linkLicence,
@@ -1121,4 +1208,5 @@ module.exports = {
   syncProductToZohoByProductId,
   getSyncHistory,
   blockProducts,
+  syncProductById
 };

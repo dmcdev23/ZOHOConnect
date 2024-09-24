@@ -112,14 +112,31 @@ const findCustomer = async (filter, lean = true, project = {}, options = {}) => 
 };
 
 const findProduct = async (filter, lean = true, project = {}, options = {}, orderSyncDetail) => {
-  const { syncParametersFirst } = orderSyncDetail;
+  // const { syncParametersFirst } = orderSyncDetail;
+  // let matchConditions;
+
+  // if (syncParametersFirst === 'id') {
+  //   matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
+  // } else {
+  //   matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
+  // }
+
   let matchConditions;
+
+if (orderSyncDetail && orderSyncDetail.syncParametersFirst) {
+  const { syncParametersFirst } = orderSyncDetail;
 
   if (syncParametersFirst === 'id') {
     matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
   } else {
     matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
   }
+} else {
+  // Handle the case where orderSyncDetail is null or syncParametersFirst is missing
+  //throw new Error('Invalid orderSyncDetail or missing syncParametersFirst');
+  console.log('Invalid orderSyncDetail or missing syncParametersFirst')
+}
+
 
   logger.debug('Primary match conditions:', matchConditions);
 
