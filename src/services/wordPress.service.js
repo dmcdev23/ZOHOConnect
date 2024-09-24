@@ -126,24 +126,24 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
 if (orderSyncDetail && orderSyncDetail.syncParametersFirst) {
   const { syncParametersFirst } = orderSyncDetail;
 
-  if (syncParametersFirst === 'id') {
-    matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
-  } else {
-    matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
-  }
-} else {
-  // Handle the case where orderSyncDetail is null or syncParametersFirst is missing
-  //throw new Error('Invalid orderSyncDetail or missing syncParametersFirst');
-  console.log('Invalid orderSyncDetail or missing syncParametersFirst')
-}
+//   if (syncParametersFirst === 'id') {
+//     matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
+//   } else {
+//     matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
+//   }
+// } else {
+//   // Handle the case where orderSyncDetail is null or syncParametersFirst is missing
+//   //throw new Error('Invalid orderSyncDetail or missing syncParametersFirst');
+//   console.log('Invalid orderSyncDetail or missing syncParametersFirst')
+// }
 
 
-  logger.debug('Primary match conditions:', matchConditions);
+  //logger.debug('Primary match conditions:', matchConditions);
 
   const primaryPipeline = [
-    {
-      $match: { $and: matchConditions },
-    },
+    // {
+    //   $match: { $and: matchConditions },
+    // },
     { $match: filter },
     {
       $match: { isActive: true },
@@ -164,26 +164,26 @@ if (orderSyncDetail && orderSyncDetail.syncParametersFirst) {
 
   logger.debug('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
 
-  if (syncParametersFirst === 'id') {
-    matchConditions = [
-      {
-        $or: [{ [`${syncParametersFirst}`]: { $eq: '' } }, { [`${syncParametersFirst}`]: { $eq: null } }],
-      },
-    ];
-  } else {
-    matchConditions = [
-      {
-        $or: [{ [`data.${syncParametersFirst}`]: { $eq: '' } }, { [`data.${syncParametersFirst}`]: { $eq: null } }],
-      },
-    ];
-  }
+  // if (syncParametersFirst === 'id') {
+  //   matchConditions = [
+  //     {
+  //       $or: [{ [`${syncParametersFirst}`]: { $eq: '' } }, { [`${syncParametersFirst}`]: { $eq: null } }],
+  //     },
+  //   ];
+  // } else {
+  //   matchConditions = [
+  //     {
+  //       $or: [{ [`data.${syncParametersFirst}`]: { $eq: '' } }, { [`data.${syncParametersFirst}`]: { $eq: null } }],
+  //     },
+  //   ];
+  // }
 
-  logger.debug('Secondary match conditions:', matchConditions);
+ // logger.debug('Secondary match conditions:', matchConditions);
 
   const secondaryPipeline = [
-    {
-      $match: { $and: matchConditions },
-    },
+    // {
+    //   $match: { $and: matchConditions },
+    // },
     { $match: filter },
     {
       $match: { isActive: true },
@@ -239,6 +239,7 @@ if (orderSyncDetail && orderSyncDetail.syncParametersFirst) {
     block: lean ? blockListResult : blockListResult.data.map((doc) => doc.toObject()),
   };
 };
+}
 
 const findProductForSyncItemZoho = async (filter, lean = true, project = {}, options = {}) => {
   const data = await wordPressProduct.find(filter, project, options).lean(lean);
