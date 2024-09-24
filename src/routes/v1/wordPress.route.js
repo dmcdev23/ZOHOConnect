@@ -63,5 +63,7 @@ router.route('/blockProducts').post(auth('user'), wordPressController.blockProdu
 router
   .route('/syncProductById')
   .post(auth('user'), licenceValidator, wordPressController.syncProductById);
+  
+router.route('/unblockProducts').post(auth('user'), wordPressController.unblockProducts);
 
 module.exports = router;
