@@ -112,6 +112,7 @@ const findCustomer = async (filter, lean = true, project = {}, options = {}) => 
 };
 
 const findProduct = async (filter, lean = true, project = {}, options = {}, orderSyncDetail) => {
+  const { licenceNumber } = filter;
   const { syncParametersFirst } = orderSyncDetail;
   let matchConditions;
 
@@ -125,9 +126,11 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
 
   const primaryPipeline = [
     {
+      $match: { licenceNumber: ObjectId(licenceNumber) },
+    },
+    {
       $match: { $and: matchConditions },
     },
-    { $match: filter },
     {
       $match: { isActive: true },
     },
@@ -165,6 +168,9 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
 
   const secondaryPipeline = [
     {
+      $match: { licenceNumber: ObjectId(licenceNumber) },
+    },
+    {
       $match: { $and: matchConditions },
     },
     { $match: filter },
@@ -192,6 +198,9 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
   logger.debug('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
 
   const blockListPipeline = [
+    {
+      $match: { licenceNumber: ObjectId(licenceNumber) },
+    },
     {
       $match: { isActive: false },
     },
@@ -374,7 +383,7 @@ const sanitizeKeys = (obj) => {
 
 const createProduct = async (req, data) => {
   const chunkSize = 500; // Adjust this size as needed
-  console.log("call createProduct", req.user._id, req.query.licenceNumber);
+  console.log('call createProduct', req.user._id, req.query.licenceNumber);
 
   // Clear previous products
   await wordPressProduct.deleteMany({
@@ -407,7 +416,7 @@ const createProduct = async (req, data) => {
             id: sanitizedData.id,
             licenceNumber: ObjectId(req.query.licenceNumber),
             isSyncedToZoho: false,
-            parentId: "",
+            parentId: '',
             isActive: true,
           },
         },
@@ -445,7 +454,8 @@ const createProduct = async (req, data) => {
 
     // Bulk insert for the current chunk
     try {
-      if (productInserts.length > 0) {  // Ensure productInserts is not empty
+      if (productInserts.length > 0) {
+        // Ensure productInserts is not empty
         const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(productInserts);
         console.log('Bulk insert result:', wordPressProductBulkInsert);
       }
@@ -459,7 +469,6 @@ const createProduct = async (req, data) => {
     }
   }
 };
-
 
 // const createProduct = async (req, data) => {
 //   const chunkSize = 500; // Adjust this size as needed
@@ -477,7 +486,7 @@ const createProduct = async (req, data) => {
 //     const chunk = data.slice(i, i + chunkSize).map((ele) => {
 //       // Sanitize the ele data before inserting
 //       const sanitizedData = sanitizeKeys(ele);
-    
+
 //       // Insert the parent product
 //       insertOperations.push({
 //         insertOne: {
@@ -500,7 +509,7 @@ const createProduct = async (req, data) => {
 //           },
 //         },
 //       });
-  
+
 //       // Insert each product variation
 //       if (sanitizedData.product_variations.length > 0) {
 //         console.log("sanitizedData.product_variations")
@@ -532,11 +541,10 @@ const createProduct = async (req, data) => {
 //       }
 //       return insertOperations;
 //     });
-  
+
 //     // Add all insert operations to the productChunks array
 //     productChunks.push(...insertOperations);
 //   }
-  
 
 //   // Create chunks of data
 //   // for (let i = 0; i < data.length; i += chunkSize) {
@@ -709,7 +717,6 @@ const bulkDeleteByLicenseNumber = async (licenceNumber) => {
   return result;
 };
 
-
 const transformItemForSyncProductInZoho = async (products) => {
   try {
     const transformMap = (element) => {
@@ -739,7 +746,7 @@ const transformItemForSyncProductInZoho = async (products) => {
 
     return products.map((element) => transformMap(element));
   } catch (err) {
-    console.log("err transformItemForSyncProductInZoho", err);
+    console.log('err transformItemForSyncProductInZoho', err);
   }
 };
 
@@ -760,5 +767,5 @@ module.exports = {
   getOrderCount,
   bulkDeleteByLicenseNumber,
   findProductForSyncItemZoho,
-  transformItemForSyncProductInZoho
+  transformItemForSyncProductInZoho,
 };
