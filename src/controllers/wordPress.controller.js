@@ -20,6 +20,7 @@ const syncOrders = catchAsync(async (req, res) => {
       consumerSecret: licence.WPSecret,
       version: 'wc/v3',
     });
+
     const IdsToExclude = await wordPressService.findOrder(
       {
         userId: req.user._id,
@@ -312,7 +313,7 @@ const fetchOrderByOrderId = async (req, res) => {
 
     const order = await WooCommerce.get(`orders/${req.query.orderId}`);
     if (order.data) {
-      //  console.log("add orders",licence._id, licence.userId, order.data);
+        console.log("add orders",licence._id, licence.userId, order.data);
       const createdOrder = await WordPressModel.findOneAndUpdate(
         {
           userId: licence.userId,
@@ -380,8 +381,8 @@ const fetchOrderByOrderId = async (req, res) => {
 
               let updatedStockQuantity = wordPressProductItem.data.stock_quantity;
 
-              switch (orderItem.status) {
-                case 'completed':
+              switch (createdOrder.data.status) {
+                case 'processing':
                   updatedStockQuantity -= orderItem.quantity; // Subtract when order is completed
                   break;
                 case 'cancelled':
@@ -860,6 +861,7 @@ const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
       page: i,
       exclude: IdsToExclude.map((ele) => ele.id),
     });
+     console.log("orders.data", orders.data)
     if (orders.status === httpStatus.OK) {
       await wordPressService.createOrder(req, orders.data);
       responseArray.concat(orders.data);
