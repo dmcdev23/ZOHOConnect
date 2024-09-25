@@ -421,9 +421,10 @@ const fetchOrderByOrderId = async (req, res) => {
           // return res.status(httpStatus.NOT_FOUND).send({ msg: 'ProductItem not found in Order sync' });
 
           // }
-          return res.status(httpStatus.OK).send({ msg: 'Order sync successfully' });
+          //return res.status(httpStatus.OK).send({ msg: 'Order sync successfully' });
         }
-        return res.status(httpStatus.NOT_FOUND).send({ msg: 'Requested Order not found in Order sync' });
+        return res.status(httpStatus.OK).send({ msg: 'Order sync successfully' });
+       // return res.status(httpStatus.NOT_FOUND).send({ msg: 'Requested Order not found in Order sync' });
       }
       return res.status(httpStatus.NOT_FOUND).send({ msg: 'Some thing went wrong in createdOrder Order sync' });
     } else {
