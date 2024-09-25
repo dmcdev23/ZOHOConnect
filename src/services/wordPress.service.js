@@ -112,38 +112,21 @@ const findCustomer = async (filter, lean = true, project = {}, options = {}) => 
 };
 
 const findProduct = async (filter, lean = true, project = {}, options = {}, orderSyncDetail) => {
-  // const { syncParametersFirst } = orderSyncDetail;
-  // let matchConditions;
-
-  // if (syncParametersFirst === 'id') {
-  //   matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
-  // } else {
-  //   matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
-  // }
-
+  const { syncParametersFirst } = orderSyncDetail;
   let matchConditions;
 
-if (orderSyncDetail && orderSyncDetail.syncParametersFirst) {
-  const { syncParametersFirst } = orderSyncDetail;
+  if (syncParametersFirst === 'id') {
+    matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
+  } else {
+    matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
+  }
 
-//   if (syncParametersFirst === 'id') {
-//     matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
-//   } else {
-//     matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
-//   }
-// } else {
-//   // Handle the case where orderSyncDetail is null or syncParametersFirst is missing
-//   //throw new Error('Invalid orderSyncDetail or missing syncParametersFirst');
-//   console.log('Invalid orderSyncDetail or missing syncParametersFirst')
-// }
-
-
-  //logger.debug('Primary match conditions:', matchConditions);
+  logger.debug('Primary match conditions:', matchConditions);
 
   const primaryPipeline = [
-    // {
-    //   $match: { $and: matchConditions },
-    // },
+    {
+      $match: { $and: matchConditions },
+    },
     { $match: filter },
     {
       $match: { isActive: true },
@@ -164,26 +147,26 @@ if (orderSyncDetail && orderSyncDetail.syncParametersFirst) {
 
   logger.debug('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
 
-  // if (syncParametersFirst === 'id') {
-  //   matchConditions = [
-  //     {
-  //       $or: [{ [`${syncParametersFirst}`]: { $eq: '' } }, { [`${syncParametersFirst}`]: { $eq: null } }],
-  //     },
-  //   ];
-  // } else {
-  //   matchConditions = [
-  //     {
-  //       $or: [{ [`data.${syncParametersFirst}`]: { $eq: '' } }, { [`data.${syncParametersFirst}`]: { $eq: null } }],
-  //     },
-  //   ];
-  // }
+  if (syncParametersFirst === 'id') {
+    matchConditions = [
+      {
+        $or: [{ [`${syncParametersFirst}`]: { $eq: '' } }, { [`${syncParametersFirst}`]: { $eq: null } }],
+      },
+    ];
+  } else {
+    matchConditions = [
+      {
+        $or: [{ [`data.${syncParametersFirst}`]: { $eq: '' } }, { [`data.${syncParametersFirst}`]: { $eq: null } }],
+      },
+    ];
+  }
 
- // logger.debug('Secondary match conditions:', matchConditions);
+  logger.debug('Secondary match conditions:', matchConditions);
 
   const secondaryPipeline = [
-    // {
-    //   $match: { $and: matchConditions },
-    // },
+    {
+      $match: { $and: matchConditions },
+    },
     { $match: filter },
     {
       $match: { isActive: true },
@@ -239,7 +222,6 @@ if (orderSyncDetail && orderSyncDetail.syncParametersFirst) {
     block: lean ? blockListResult : blockListResult.data.map((doc) => doc.toObject()),
   };
 };
-}
 
 const findProductForSyncItemZoho = async (filter, lean = true, project = {}, options = {}) => {
   const data = await wordPressProduct.find(filter, project, options).lean(lean);
@@ -392,7 +374,7 @@ const sanitizeKeys = (obj) => {
 
 const createProduct = async (req, data) => {
   const chunkSize = 500; // Adjust this size as needed
-  console.log("call createProduct", req.user._id, req.query.licenceNumber);
+  console.log('call createProduct', req.user._id, req.query.licenceNumber);
 
   // Clear previous products
   await wordPressProduct.deleteMany({
@@ -425,7 +407,7 @@ const createProduct = async (req, data) => {
             id: sanitizedData.id,
             licenceNumber: ObjectId(req.query.licenceNumber),
             isSyncedToZoho: false,
-            parentId: "",
+            parentId: '',
             isActive: true,
           },
         },
@@ -463,7 +445,8 @@ const createProduct = async (req, data) => {
 
     // Bulk insert for the current chunk
     try {
-      if (productInserts.length > 0) {  // Ensure productInserts is not empty
+      if (productInserts.length > 0) {
+        // Ensure productInserts is not empty
         const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(productInserts);
         console.log('Bulk insert result:', wordPressProductBulkInsert);
       }
@@ -477,7 +460,6 @@ const createProduct = async (req, data) => {
     }
   }
 };
-
 
 // const createProduct = async (req, data) => {
 //   const chunkSize = 500; // Adjust this size as needed
@@ -495,7 +477,7 @@ const createProduct = async (req, data) => {
 //     const chunk = data.slice(i, i + chunkSize).map((ele) => {
 //       // Sanitize the ele data before inserting
 //       const sanitizedData = sanitizeKeys(ele);
-    
+
 //       // Insert the parent product
 //       insertOperations.push({
 //         insertOne: {
@@ -518,7 +500,7 @@ const createProduct = async (req, data) => {
 //           },
 //         },
 //       });
-  
+
 //       // Insert each product variation
 //       if (sanitizedData.product_variations.length > 0) {
 //         console.log("sanitizedData.product_variations")
@@ -550,11 +532,10 @@ const createProduct = async (req, data) => {
 //       }
 //       return insertOperations;
 //     });
-  
+
 //     // Add all insert operations to the productChunks array
 //     productChunks.push(...insertOperations);
 //   }
-  
 
 //   // Create chunks of data
 //   // for (let i = 0; i < data.length; i += chunkSize) {
@@ -727,7 +708,6 @@ const bulkDeleteByLicenseNumber = async (licenceNumber) => {
   return result;
 };
 
-
 const transformItemForSyncProductInZoho = async (products) => {
   try {
     const transformMap = (element) => {
@@ -757,7 +737,7 @@ const transformItemForSyncProductInZoho = async (products) => {
 
     return products.map((element) => transformMap(element));
   } catch (err) {
-    console.log("err transformItemForSyncProductInZoho", err);
+    console.log('err transformItemForSyncProductInZoho', err);
   }
 };
 
@@ -778,5 +758,5 @@ module.exports = {
   getOrderCount,
   bulkDeleteByLicenseNumber,
   findProductForSyncItemZoho,
-  transformItemForSyncProductInZoho
+  transformItemForSyncProductInZoho,
 };
