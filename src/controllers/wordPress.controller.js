@@ -82,6 +82,7 @@ const syncProduct = catchAsync(async (req, res) => {
 
 const getOrders = catchAsync(async (req, res) => {
   try {
+    console.log("req.query.licenceNumber", req.query.licenceNumber)
     const licence = await wordPressService.findOrder(
       { licenceNumber: ObjectId(req.query.licenceNumber) },
       true,

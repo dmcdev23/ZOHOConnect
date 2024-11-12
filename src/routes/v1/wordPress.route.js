@@ -15,10 +15,10 @@ router
 router
   .route('/syncProduct')
   .get(auth('user'), validate(wordPressValidation.syncOrders), licenceValidator, wordPressController.syncProduct);
-
+//validate(wordPressValidation.getOrders), remove form getOrders
 router
   .route('/getOrders')
-  .get(auth('user'), validate(wordPressValidation.getOrders), licenceValidator, wordPressController.getOrders);
+  .get(auth('user'),  licenceValidator, wordPressController.getOrders);
 
 router.route('/getProduct').get(auth('user'), validate(wordPressValidation.getProducts), wordPressController.getProduct);
 

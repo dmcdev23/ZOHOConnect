@@ -8,6 +8,7 @@ const { ErrorTypes } = require('./constant');
 const { ObjectId } = mongoose.Types;
 
 const findOrder = async (filter, lean = true, project = {}, options = { page: 1, limit: 10 }) => {
+  console.log("findOrder filter", filter)
   const data = await WordPressModel.find(filter, project, {
     skip: (options.page - 1) * options.limit,
     limit: options.limit,
