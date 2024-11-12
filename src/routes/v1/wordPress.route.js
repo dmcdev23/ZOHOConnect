@@ -65,5 +65,7 @@ router
   .post(auth('user'), licenceValidator, wordPressController.syncProductById);
   
 router.route('/unblockProducts').post(auth('user'), wordPressController.unblockProducts);
+router.route('/syncOrderFromZoho/:licenceNumber').post(wordPressController.syncOrderFromZoho);
+
 
 module.exports = router;
