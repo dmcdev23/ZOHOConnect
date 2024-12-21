@@ -1293,23 +1293,33 @@ const syncOrderFromZoho = async (req, res) => {
   const licence = await licenceService.findOne({ _id: ObjectId(req.params.licenceNumber) });
  // console.log("licence", licence)
   if (licence) {
-    const order = await WordPressModel.findOneAndUpdate(
-      {
-        userId: licence.userId,
-        id: req.body["salesorder_number"],
-      },
-      {
-        $set: {
-          data: req.body,
-          userId: licence.userId,
-          id: req.body["salesorder_number"],
-          licenceNumber: licence._id,
-          isSyncedToZoho: false,
-          isReadyForSync: true,
-        },
-      },
-      { upsert: true, new: true }
-    );
+    // const order = await WordPressModel.findOneAndUpdate(
+    //   {
+    //     userId: licence.userId,
+    //     id: req.body["salesorder_number"],
+    //   },
+    //   {
+    //     $set: {
+    //       data: req.body,
+    //       userId: licence.userId,
+    //       id: req.body["salesorder_number"],
+    //       licenceNumber: licence._id,
+    //       isSyncedToZoho: false,
+    //       isReadyForSync: true,
+    //     },
+    //   },
+    //   { upsert: true, new: true }
+    // );
+
+    const order = await new WordPressModel({
+      data: req.body,
+      userId: licence.userId,
+      id: req.body["salesorder_number"],
+      licenceNumber: licence._id,
+      isSyncedToZoho: false,
+      isReadyForSync: true,
+    }).save();
+
 
     if (order) {
       return res.status(httpStatus.OK).send({ msg: 'Order created successfully' });
