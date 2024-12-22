@@ -1280,6 +1280,7 @@ const sanitizeKeys = (obj) => {
 };
 
 const syncOrderFromZoho = async (req, res) => {
+  console.log('call syncOrderFromZoho');
   // Check if licenceNumber exists and is not empty/undefined
   if (!req.params.licenceNumber?.trim()) {
     return res.status(httpStatus.BAD_REQUEST).send({ msg: 'licenceNumber is required in query parameters' });
@@ -1292,43 +1293,45 @@ const syncOrderFromZoho = async (req, res) => {
   // console.log("req.params.licenceNumber", req.params.licenceNumber)
   const licence = await licenceService.findOne({ _id: ObjectId(req.params.licenceNumber) });
  // console.log("licence", licence)
-  if (licence) {
-    // const order = await WordPressModel.findOneAndUpdate(
-    //   {
-    //     userId: licence.userId,
-    //     id: req.body["salesorder_number"],
-    //   },
-    //   {
-    //     $set: {
-    //       data: req.body,
-    //       userId: licence.userId,
-    //       id: req.body["salesorder_number"],
-    //       licenceNumber: licence._id,
-    //       isSyncedToZoho: false,
-    //       isReadyForSync: true,
-    //     },
-    //   },
-    //   { upsert: true, new: true }
-    // );
+ if (!licence) {
+  return res
+    .status(httpStatus.INTERNAL_SERVER_ERROR)
+    .send({ msg: 'Invalid License Number' });
+}
 
-    const order = await new WordPressModel({
-      data: req.body,
-      userId: licence.userId,
-      id: req.body["salesorder_number"],
-      licenceNumber: licence._id,
-      isSyncedToZoho: false,
-      isReadyForSync: true,
-    }).save();
+const { salesorder } = req.body;
 
+if (!salesorder || !salesorder.salesorder_number) {
+  return res
+    .status(httpStatus.BAD_REQUEST)
+    .send({ msg: 'Missing salesorder_number in the request body' });
+}
 
-    if (order) {
-      return res.status(httpStatus.OK).send({ msg: 'Order created successfully' });
-    } else {
-      return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Error creating order' });
-    }
-  } else {
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
-  }
+//console.log("req.body salesorder_number:", salesorder.salesorder_number);
+
+try {
+  const orderData = {
+    data: req.body,
+    userId: licence.userId,
+    id: salesorder.salesorder_number,
+    licenceNumber: licence._id,
+    isSyncedToZoho: false,
+    isReadyForSync: true,
+  };
+
+  const order = await new WordPressModel(orderData).save();
+
+  //console.log("Order created successfully:", order);
+
+  return res
+    .status(httpStatus.OK)
+    .send({ msg: 'Order created successfully' });
+} catch (error) {
+  console.error("Error creating order:", error);
+  return res
+    .status(httpStatus.INTERNAL_SERVER_ERROR)
+    .send({ msg: 'Error creating order', error: error.message });
+}
 }
 
 
