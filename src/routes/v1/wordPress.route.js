@@ -66,6 +66,6 @@ router
   
 router.route('/unblockProducts').post(auth('user'), wordPressController.unblockProducts);
 router.route('/syncOrderFromZoho/:licenceNumber').post(wordPressController.syncOrderFromZoho);
-
+router.route('/syncProductFromZoho/:licenceNumber').post(wordPressController.syncProductFromZoho);
 
 module.exports = router;

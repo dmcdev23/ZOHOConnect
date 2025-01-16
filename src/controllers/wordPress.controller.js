@@ -1333,6 +1333,57 @@ try {
     .send({ msg: 'Error creating order', error: error.message });
 }
 }
+const syncProductFromZoho = async (req, res) => {
+  console.log('call syncProductFromZoho');
+
+  // Check if licenceNumber exists and is not empty/undefined
+  if (!req.params.licenceNumber?.trim()) {
+    return res.status(httpStatus.BAD_REQUEST).send({ msg: 'licenceNumber is required in query parameters' });
+  }
+
+  // Check if body exists and is not empty
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(httpStatus.BAD_REQUEST).send({ msg: 'Request body is required' });
+  }
+
+  const licence = await licenceService.findOne({ _id: ObjectId(req.params.licenceNumber) });
+
+  if (!licence) {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
+  }
+
+  const { item } = req.body;
+
+  if (!item || !item.item_id || !item.name || !item.sku) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .send({ msg: 'Missing required item details (item_id, name, sku) in the request body' });
+  }
+
+  try {
+    const productData = {
+      userId: licence.userId,
+      id: item.item_id,
+      data: req.body,
+      licenceNumber: licence._id,
+      isSyncedToZoho: false,
+      item_id: item.item_id,
+      zohoResponse: item,
+    };
+
+    const product = await new wordPressProduct(productData).save();
+
+    console.log('Product created successfully:', product);
+
+    return res.status(httpStatus.OK).send({ msg: 'Product created successfully' });
+  } catch (error) {
+    console.error('Error creating product:', error);
+    return res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .send({ msg: 'Error creating product', error: error.message });
+  }
+};
+
 
 
 module.exports = {
@@ -1353,5 +1404,6 @@ module.exports = {
   blockProducts,
   unblockProducts,
   syncProductById,
-  syncOrderFromZoho
+  syncOrderFromZoho,
+  syncProductFromZoho
 };
