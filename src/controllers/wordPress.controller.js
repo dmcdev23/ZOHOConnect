@@ -1361,6 +1361,9 @@ const syncProductFromZoho = async (req, res) => {
   }
 
   try {
+    // Check if product exists by item_id
+    const existingProduct = await wordPressProduct.findOne({ item_id: item.item_id });
+
     const productData = {
       userId: licence.userId,
       id: item.item_id,
@@ -1371,16 +1374,24 @@ const syncProductFromZoho = async (req, res) => {
       zohoResponse: item,
     };
 
-    const product = await new wordPressProduct(productData).save();
+    let product;
 
-    console.log('Product created successfully:', product);
+    if (existingProduct) {
+      // Update the existing product
+      product = await wordPressProduct.findByIdAndUpdate(existingProduct._id, productData, { new: true });
+      console.log('Product updated successfully:', product);
+    } else {
+      // Create a new product
+      product = await new wordPressProduct(productData).save();
+      console.log('Product created successfully:', product);
+    }
+    return res.status(httpStatus.OK).send({ msg: existingProduct ? 'Product updated successfully' : 'Product created successfully' });
 
-    return res.status(httpStatus.OK).send({ msg: 'Product created successfully' });
   } catch (error) {
-    console.error('Error creating product:', error);
+    console.error('Error creating or updating product:', error);
     return res
       .status(httpStatus.INTERNAL_SERVER_ERROR)
-      .send({ msg: 'Error creating product', error: error.message });
+      .send({ msg: 'Error creating or updating product', error: error.message });
   }
 };
 
