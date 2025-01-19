@@ -114,27 +114,17 @@ const findCustomer = async (filter, lean = true, project = {}, options = {}) => 
 
 const findProduct = async (filter, lean = true, project = {}, options = {}, orderSyncDetail) => {
   const { syncParametersFirst } = orderSyncDetail;
-  let matchConditions;
-
-  if (syncParametersFirst === 'id') {
-    matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
-  } else {
-    matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
-  }
+  const matchConditions = syncParametersFirst === 'id' 
+    ? [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }] 
+    : [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
 
   logger.debug('Primary match conditions:', matchConditions, filter);
 
   const primaryPipeline = [
-    {
-      $match: { $and: matchConditions },
-    },
+    { $match: { $and: matchConditions } },
     { $match: filter },
-    {
-      $match: { isActive: true },
-    },
-    {
-      $sort: { createdAt: -1 }
-    },
+    { $match: { isActive: true } },
+    { $sort: { createdAt: -1 } },
     {
       $facet: {
         metadata: [{ $count: 'totalRecords' }],
@@ -151,32 +141,14 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
 
   logger.debug('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
 
-  if(syncParametersFirst) {
-  if (syncParametersFirst === 'id') {
-    matchConditions = [
-      {
-        $or: [{ [`${syncParametersFirst}`]: { $eq: '' } }, { [`${syncParametersFirst}`]: { $eq: null } }],
-      },
-    ];
-  } else {
-    matchConditions = [
-      {
-        $or: [{ [`data.${syncParametersFirst}`]: { $eq: '' } }, { [`data.${syncParametersFirst}`]: { $eq: null } }],
-      },
-    ];
-  }
-}
-
-  logger.debug('Secondary match conditions:', matchConditions);
+  const secondaryMatchConditions = syncParametersFirst === 'id' 
+    ? [{ $or: [{ [`${syncParametersFirst}`]: { $eq: '' } }, { [`${syncParametersFirst}`]: { $eq: null } }] }] 
+    : [{ $or: [{ [`data.${syncParametersFirst}`]: { $eq: '' } }, { [`data.${syncParametersFirst}`]: { $eq: null } }] }];
 
   const secondaryPipeline = [
-    {
-      $match: { $and: matchConditions },
-    },
+    { $match: { $and: secondaryMatchConditions } },
     { $match: filter },
-    {
-      $match: { isActive: true },
-    },
+    { $match: { isActive: true } },
     {
       $facet: {
         metadata: [{ $count: 'totalRecords' }],
@@ -198,9 +170,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
   logger.debug('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
 
   const blockListPipeline = [
-    {
-      $match: { isActive: false },
-    },
+    { $match: { isActive: false } },
     {
       $facet: {
         metadata: [{ $count: 'totalRecords' }],
@@ -215,10 +185,6 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     },
   ];
 
- // console.log('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
- // console.log('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
- // console.log('Blocklist pipeline:', JSON.stringify(blockListPipeline, null, 2));
-
   const [primaryResult] = await wordPressProduct.aggregate(primaryPipeline).exec();
   const [secondaryResult] = await wordPressProduct.aggregate(secondaryPipeline).exec();
   const [blockListResult] = await wordPressProduct.aggregate(blockListPipeline).exec();
@@ -232,6 +198,127 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     block: lean ? blockListResult : blockListResult.data.map((doc) => doc.toObject()),
   };
 };
+
+// const findProduct = async (filter, lean = true, project = {}, options = {}, orderSyncDetail) => {
+//   const { syncParametersFirst } = orderSyncDetail;
+//   let matchConditions;
+
+//   if (syncParametersFirst === 'id') {
+//     matchConditions = [{ [`${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
+//   } else {
+//     matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
+//   }
+
+//   logger.debug('Primary match conditions:', matchConditions, filter);
+
+//   const primaryPipeline = [
+//     {
+//       $match: { $and: matchConditions },
+//     },
+//     { $match: filter },
+//     {
+//       $match: { isActive: true },
+//     },
+//     {
+//       $sort: { createdAt: -1 }
+//     },
+//     {
+//       $facet: {
+//         metadata: [{ $count: 'totalRecords' }],
+//         data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
+//       },
+//     },
+//     {
+//       $project: {
+//         data: 1,
+//         total: { $ifNull: [{ $arrayElemAt: ['$metadata.totalRecords', 0] }, 0] },
+//       },
+//     },
+//   ];
+
+//   logger.debug('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
+
+//   if(syncParametersFirst) {
+//   if (syncParametersFirst === 'id') {
+//     matchConditions = [
+//       {
+//         $or: [{ [`${syncParametersFirst}`]: { $eq: '' } }, { [`${syncParametersFirst}`]: { $eq: null } }],
+//       },
+//     ];
+//   } else {
+//     matchConditions = [
+//       {
+//         $or: [{ [`data.${syncParametersFirst}`]: { $eq: '' } }, { [`data.${syncParametersFirst}`]: { $eq: null } }],
+//       },
+//     ];
+//   }
+// }
+
+//  // logger.debug('Secondary match conditions:', matchConditions);
+
+//   const secondaryPipeline = [
+//     {
+//       $match: { $and: matchConditions },
+//     },
+//     { $match: filter },
+//     {
+//       $match: { isActive: true },
+//     },
+//     {
+//       $facet: {
+//         metadata: [{ $count: 'totalRecords' }],
+//         data: [
+//           { $skip: options.page * options.limit },
+//           { $limit: options.limit || 5 },
+//           { $addFields: { error: ErrorTypes[syncParametersFirst] } },
+//         ],
+//       },
+//     },
+//     {
+//       $project: {
+//         data: 1,
+//         total: { $ifNull: [{ $arrayElemAt: ['$metadata.totalRecords', 0] }, 0] },
+//       },
+//     },
+//   ];
+
+//   logger.debug('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
+
+//   const blockListPipeline = [
+//     {
+//       $match: { isActive: false },
+//     },
+//     {
+//       $facet: {
+//         metadata: [{ $count: 'totalRecords' }],
+//         data: [{ $skip: options.page * options.limit }, { $limit: options.limit || 5 }],
+//       },
+//     },
+//     {
+//       $project: {
+//         data: 1,
+//         total: { $ifNull: [{ $arrayElemAt: ['$metadata.totalRecords', 0] }, 0] },
+//       },
+//     },
+//   ];
+
+//  // console.log('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
+//  // console.log('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
+//  // console.log('Blocklist pipeline:', JSON.stringify(blockListPipeline, null, 2));
+
+//   const [primaryResult] = await wordPressProduct.aggregate(primaryPipeline).exec();
+//   const [secondaryResult] = await wordPressProduct.aggregate(secondaryPipeline).exec();
+//   const [blockListResult] = await wordPressProduct.aggregate(blockListPipeline).exec();
+
+//   logger.debug('Primary result:', primaryResult);
+//   logger.debug('Secondary result:', secondaryResult);
+
+//   return {
+//     item: lean ? primaryResult : primaryResult.data.map((doc) => doc.toObject()),
+//     error: lean ? secondaryResult : secondaryResult.data.map((doc) => doc.toObject()),
+//     block: lean ? blockListResult : blockListResult.data.map((doc) => doc.toObject()),
+//   };
+// };
 
 const findProductForSyncItemZoho = async (filter, lean = true, project = {}, options = {}) => {
   const data = await wordPressProduct.find(filter, project, options).lean(lean);
