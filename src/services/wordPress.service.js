@@ -122,7 +122,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     matchConditions = [{ [`data.${syncParametersFirst}`]: { $exists: true, $ne: '' } }];
   }
 
-  logger.debug('Primary match conditions:', matchConditions);
+  logger.debug('Primary match conditions:', matchConditions, filter);
 
   const primaryPipeline = [
     {
@@ -131,6 +131,9 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
     { $match: filter },
     {
       $match: { isActive: true },
+    },
+    {
+      $sort: { createdAt: -1 }
     },
     {
       $facet: {
@@ -148,6 +151,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
 
   logger.debug('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
 
+  if(syncParametersFirst) {
   if (syncParametersFirst === 'id') {
     matchConditions = [
       {
@@ -161,6 +165,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
       },
     ];
   }
+}
 
   logger.debug('Secondary match conditions:', matchConditions);
 
@@ -209,6 +214,10 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
       },
     },
   ];
+
+ // console.log('Primary pipeline:', JSON.stringify(primaryPipeline, null, 2));
+ // console.log('Secondary pipeline:', JSON.stringify(secondaryPipeline, null, 2));
+ // console.log('Blocklist pipeline:', JSON.stringify(blockListPipeline, null, 2));
 
   const [primaryResult] = await wordPressProduct.aggregate(primaryPipeline).exec();
   const [secondaryResult] = await wordPressProduct.aggregate(secondaryPipeline).exec();

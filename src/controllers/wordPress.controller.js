@@ -105,8 +105,11 @@ const getOrders = catchAsync(async (req, res) => {
 
 const getProduct = catchAsync(async (req, res) => {
   try {
-    const orderSyncDetail = await ItemSyncSetup.findOne({ licenseNumber: ObjectId(req.query.licenceNumber) });
+    let orderSyncDetail = await ItemSyncSetup.findOne({ licenseNumber: ObjectId(req.query.licenceNumber) });
     console.log("orderSyncDetail", orderSyncDetail)
+    if (!orderSyncDetail) {
+      orderSyncDetail = { syncParametersFirst: null };
+    }
     const licence = await wordPressService.findProduct(
       { licenceNumber: ObjectId(req.query.licenceNumber) },
       true,
