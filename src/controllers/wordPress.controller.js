@@ -82,7 +82,7 @@ const syncProduct = catchAsync(async (req, res) => {
 
 const getOrders = catchAsync(async (req, res) => {
   try {
-    console.log("req.query.licenceNumber", req.query.licenceNumber)
+    console.log('req.query.licenceNumber', req.query.licenceNumber);
     const licence = await wordPressService.findOrder(
       { licenceNumber: ObjectId(req.query.licenceNumber) },
       true,
@@ -95,9 +95,9 @@ const getOrders = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -106,7 +106,7 @@ const getOrders = catchAsync(async (req, res) => {
 const getProduct = catchAsync(async (req, res) => {
   try {
     let orderSyncDetail = await ItemSyncSetup.findOne({ licenseNumber: ObjectId(req.query.licenceNumber) });
-    console.log("orderSyncDetail", orderSyncDetail)
+    console.log('orderSyncDetail', orderSyncDetail);
     if (!orderSyncDetail) {
       orderSyncDetail = { syncParametersFirst: null };
     }
@@ -123,9 +123,9 @@ const getProduct = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -145,9 +145,9 @@ const getCustomer = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -196,9 +196,9 @@ const linkLicence = catchAsync(async (req, res) => {
     res.status(e?.response.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -228,9 +228,9 @@ const syncCustomer = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : { data: e.message }
     );
   }
@@ -246,9 +246,9 @@ const syncCustomerToZoho = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -265,9 +265,9 @@ const syncProductToZoho = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -284,9 +284,9 @@ const syncOrderToZoho = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -317,7 +317,7 @@ const fetchOrderByOrderId = async (req, res) => {
 
     const order = await WooCommerce.get(`orders/${req.query.orderId}`);
     if (order.data) {
-      console.log("add orders", licence._id, licence.userId, order.data);
+      console.log('add orders', licence._id, licence.userId, order.data);
       const createdOrder = await WordPressModel.findOneAndUpdate(
         {
           userId: licence.userId,
@@ -440,9 +440,9 @@ const fetchOrderByOrderId = async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -734,9 +734,9 @@ const syncOrderToZohoByOrderId = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -849,9 +849,9 @@ const syncProductToZohoByProductId = catchAsync(async (req, res) => {
     res.status(e?.response?.status || httpStatus.INTERNAL_SERVER_ERROR).send(
       !!e?.response
         ? {
-          statusText: e.response.statusText,
-          data: e.response.data,
-        }
+            statusText: e.response.statusText,
+            data: e.response.data,
+          }
         : e
     );
   }
@@ -866,7 +866,7 @@ const fetchFromOrder = async (WooCommerce, IdsToExclude, req) => {
       page: i,
       exclude: IdsToExclude.map((ele) => ele.id),
     });
-    console.log("orders.data", orders.data)
+    console.log('orders.data', orders.data);
     if (orders.status === httpStatus.OK) {
       await wordPressService.createOrder(req, orders.data);
       responseArray.concat(orders.data);
@@ -1130,10 +1130,8 @@ const unblockProducts = async (req, res) => {
   }
 };
 
-
 const syncProductById = catchAsync(async (req, res) => {
   try {
-
     if (!req.query.licenceNumber || !req.body) {
       return res.status(httpStatus.OK).send({ msg: 'Invalid param pass' });
     }
@@ -1202,7 +1200,7 @@ const syncProductById = catchAsync(async (req, res) => {
               id: sanitizedData.id,
               licenceNumber: ObjectId(req.query.licenceNumber),
               isSyncedToZoho: false,
-              parentId: "", // Parent product, no parentId
+              parentId: '', // Parent product, no parentId
               isActive: true,
             },
           },
@@ -1238,15 +1236,13 @@ const syncProductById = catchAsync(async (req, res) => {
         await wordPressProduct.deleteMany({
           userId: req.user._id,
           licenceNumber: ObjectId(req.query.licenceNumber),
-          $or: [
-            { id: productId },
-            { parentId: productId }
-          ]
+          $or: [{ id: productId }, { parentId: productId }],
         });
 
         // Bulk insert for the current chunk
         try {
-          if (productInserts.length > 0) {  // Ensure productInserts is not empty
+          if (productInserts.length > 0) {
+            // Ensure productInserts is not empty
             const wordPressProductBulkInsert = await wordPressProduct.bulkWrite(productInserts);
             // console.log('Bulk insert result:', wordPressProductBulkInsert);
           }
@@ -1258,7 +1254,6 @@ const syncProductById = catchAsync(async (req, res) => {
             });
           }
         }
-
       }
     }
 
@@ -1295,47 +1290,39 @@ const syncOrderFromZoho = async (req, res) => {
   }
   // console.log("req.params.licenceNumber", req.params.licenceNumber)
   const licence = await licenceService.findOne({ _id: ObjectId(req.params.licenceNumber) });
- // console.log("licence", licence)
- if (!licence) {
-  return res
-    .status(httpStatus.INTERNAL_SERVER_ERROR)
-    .send({ msg: 'Invalid License Number' });
-}
+  // console.log("licence", licence)
+  if (!licence) {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Invalid License Number' });
+  }
 
-const { salesorder } = req.body;
+  const { salesorder } = req.body;
 
-if (!salesorder || !salesorder.salesorder_number) {
-  return res
-    .status(httpStatus.BAD_REQUEST)
-    .send({ msg: 'Missing salesorder_number in the request body' });
-}
+  if (!salesorder || !salesorder.salesorder_number) {
+    return res.status(httpStatus.BAD_REQUEST).send({ msg: 'Missing salesorder_number in the request body' });
+  }
 
-//console.log("req.body salesorder_number:", salesorder.salesorder_number);
+  //console.log("req.body salesorder_number:", salesorder.salesorder_number);
 
-try {
-  const orderData = {
-    data: req.body,
-    userId: licence.userId,
-    id: salesorder.salesorder_number,
-    licenceNumber: licence._id,
-    isSyncedToZoho: false,
-    isReadyForSync: true,
-  };
+  try {
+    const orderData = {
+      data: req.body,
+      userId: licence.userId,
+      id: salesorder.salesorder_number,
+      licenceNumber: licence._id,
+      isSyncedToZoho: false,
+      isReadyForSync: true,
+    };
 
-  const order = await new WordPressModel(orderData).save();
+    const order = await new WordPressModel(orderData).save();
 
-  //console.log("Order created successfully:", order);
+    //console.log("Order created successfully:", order);
 
-  return res
-    .status(httpStatus.OK)
-    .send({ msg: 'Order created successfully' });
-} catch (error) {
-  console.error("Error creating order:", error);
-  return res
-    .status(httpStatus.INTERNAL_SERVER_ERROR)
-    .send({ msg: 'Error creating order', error: error.message });
-}
-}
+    return res.status(httpStatus.OK).send({ msg: 'Order created successfully' });
+  } catch (error) {
+    console.error('Error creating order:', error);
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ msg: 'Error creating order', error: error.message });
+  }
+};
 const syncProductFromZoho = async (req, res) => {
   console.log('call syncProductFromZoho');
 
@@ -1388,8 +1375,9 @@ const syncProductFromZoho = async (req, res) => {
       product = await new wordPressProduct(productData).save();
       console.log('Product created successfully:', product);
     }
-    return res.status(httpStatus.OK).send({ msg: existingProduct ? 'Product updated successfully' : 'Product created successfully' });
-
+    return res
+      .status(httpStatus.OK)
+      .send({ msg: existingProduct ? 'Product updated successfully' : 'Product created successfully' });
   } catch (error) {
     console.error('Error creating or updating product:', error);
     return res
@@ -1397,8 +1385,6 @@ const syncProductFromZoho = async (req, res) => {
       .send({ msg: 'Error creating or updating product', error: error.message });
   }
 };
-
-
 
 module.exports = {
   syncOrders,
@@ -1419,5 +1405,5 @@ module.exports = {
   unblockProducts,
   syncProductById,
   syncOrderFromZoho,
-  syncProductFromZoho
+  syncProductFromZoho,
 };
