@@ -146,9 +146,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
   const [primaryResult] = await wordPressProduct.aggregate(primaryPipeline).exec();
   logger.debug('Primary result:', primaryResult);
 
-  return {
-    item: lean ? primaryResult : primaryResult.data.map((doc) => doc.toObject()),
-  };
+  return lean ? primaryResult : primaryResult.data.map((doc) => doc.toObject());
 };
 
 const findProductForSyncItemZoho = async (filter, lean = true, project = {}, options = {}) => {
