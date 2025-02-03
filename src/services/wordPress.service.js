@@ -123,7 +123,7 @@ const findProduct = async (filter, lean = true, project = {}, options = {}, orde
   logger.debug('Primary match conditions:', matchConditions, filter);
 
   const primaryPipeline = [
-    { $match: { $and: matchConditions } },
+    // { $match: { $and: matchConditions } },
     { $match: filter },
     { $match: { isActive: true } },
     { $sort: { createdAt: -1 } },
